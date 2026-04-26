@@ -1,0 +1,2400 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nimbus — Pomodoro Timer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Sans:wght@200;300;400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --work-a: #1a2a4a; --work-b: #0e3a6e; --work-c: #1c5ea8;
+      --work-d: #4a9de8; --work-e: #8dc8f8;
+      --work-text: #d6edff; --work-muted: rgba(180,220,255,0.55); --work-border: rgba(140,200,255,0.18);
+
+      --short-a: #0f2e28; --short-b: #0c4035; --short-c: #0e6b52;
+      --short-d: #26b88a; --short-e: #7de8c0;
+      --short-text: #c8f5e4; --short-muted: rgba(150,230,200,0.55); --short-border: rgba(100,220,170,0.18);
+
+      --long-a: #2c1a10; --long-b: #4a2810; --long-c: #8b4a1a;
+      --long-d: #d4843a; --long-e: #f0bf80;
+      --long-text: #fde8c8; --long-muted: rgba(240,190,130,0.55); --long-border: rgba(220,160,90,0.18);
+
+      --bg-a: var(--work-a); --bg-b: var(--work-b);
+      --cloud-c: var(--work-c); --cloud-d: var(--work-d); --cloud-e: var(--work-e);
+      --tx: var(--work-text); --muted: var(--work-muted); --border: var(--work-border);
+      --bg-a-rgb: 26, 42, 74; --bg-b-rgb: 14, 58, 110;
+      --cloud-c-rgb: 28, 94, 168; --cloud-d-rgb: 74, 157, 232; --cloud-e-rgb: 141, 200, 248;
+      --panel-bg: rgba(var(--bg-a-rgb), .82);
+      --panel-surface: rgba(var(--bg-b-rgb), .36);
+      --panel-line: rgba(var(--cloud-e-rgb), .16);
+      --panel-hover: rgba(var(--cloud-e-rgb), .08);
+      --trans: 2.4s cubic-bezier(.4,0,.2,1);
+      --sidebar-w: 320px;
+      --page-x: 36px;
+      --top-y: 32px;
+      --scene-top: 92px;
+      --scene-bottom: 238px;
+      --controls-bottom: 48px;
+      --main-shift: 0px;
+      --log-shift: 0px;
+      --raise: 0px;
+    }
+
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      background: var(--bg-a);
+      transition: background var(--trans);
+      color: var(--tx);
+    }
+    body.sidebar-open {
+      --main-shift: calc(var(--sidebar-w) / -2);
+      --log-shift: calc(var(--sidebar-w) * -1);
+    }
+
+    #canvas {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      transition: none;
+    }
+    body.sidebar-open #canvas { width: 100%; }
+
+    /* ── SCENE ── */
+    .scene {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: var(--scene-top) 0 var(--scene-bottom);
+      pointer-events: none;
+      transform: translateX(var(--main-shift));
+      transition: transform .28s cubic-bezier(.2,.8,.2,1), opacity .2s ease;
+      right: 0;
+      will-change: transform;
+    }
+
+    .wordmark {
+      position: absolute; top: calc(var(--top-y) + 4px); left: 50%; transform: translateX(-50%);
+      font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 300;
+      letter-spacing: .32em; text-transform: uppercase;
+      color: var(--muted); transition: color var(--trans);
+      pointer-events: none; white-space: nowrap;
+    }
+
+    .time-wrap {
+      position: relative; display: flex; flex-direction: column;
+      align-items: center; gap: 8px; z-index: 10; pointer-events: none;
+    }
+
+    .time-gauge {
+      width: clamp(260px, 38vw, 460px);
+      height: auto;
+      margin-bottom: -4px;
+      overflow: visible;
+      opacity: .92;
+      filter: drop-shadow(0 0 28px rgba(255,255,255,.08));
+      transition: opacity var(--trans);
+    }
+    .gauge-track {
+      fill: none;
+      stroke: var(--border);
+      stroke-width: 1;
+      transition: stroke var(--trans);
+    }
+    .gauge-progress {
+      fill: none;
+      stroke: var(--cloud-e);
+      stroke-width: 2.1;
+      stroke-linecap: round;
+      transition: stroke-dashoffset .55s linear, stroke var(--trans);
+    }
+    .gauge-tick {
+      stroke: var(--muted);
+      stroke-width: 1;
+      stroke-linecap: round;
+      opacity: .26;
+      transition: opacity .35s ease, stroke var(--trans);
+    }
+    .gauge-tick.major { stroke-width: 1.35; opacity: .36; }
+    .gauge-tick.active {
+      stroke: var(--cloud-e);
+      opacity: .9;
+    }
+    .gauge-marker {
+      fill: var(--cloud-e);
+      opacity: .95;
+      filter: drop-shadow(0 0 8px var(--cloud-e));
+      transition: transform .55s linear, fill var(--trans);
+    }
+
+    .time-display {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(92px, 17vw, 236px); font-weight: 300;
+      letter-spacing: .025em; line-height: 1.02; color: var(--tx);
+      font-variant-numeric: tabular-nums;
+      max-width: 94vw;
+      margin-bottom: 8px;
+      transition: color var(--trans);
+      text-shadow: 0 0 80px rgba(255,255,255,.12), 0 0 160px rgba(255,255,255,.06);
+    }
+
+    .mode-label {
+      font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 200;
+      letter-spacing: .28em; line-height: 1.4; text-transform: uppercase;
+      color: var(--muted); transition: color var(--trans);
+    }
+
+    .session-name-display {
+      font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 300;
+      letter-spacing: .1em; color: var(--muted); transition: color var(--trans), opacity .4s;
+      opacity: 0; max-width: 260px; text-align: center; font-style: italic;
+    }
+    .session-name-display.visible { opacity: .8; }
+
+    .session-done-msg {
+      font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 300;
+      letter-spacing: .12em; color: var(--muted);
+      transition: color var(--trans), opacity .6s; opacity: 0; margin-top: 4px;
+    }
+    .session-done-msg.visible { opacity: 1; }
+
+    /* ── CONTROLS ── */
+    .controls {
+      position: absolute; bottom: var(--controls-bottom); left: 50%;
+      transform: translateX(calc(-50% + var(--main-shift)));
+      display: flex; flex-direction: column; align-items: center; gap: 18px;
+      pointer-events: all;
+      transition: transform .28s cubic-bezier(.2,.8,.2,1), opacity .2s ease;
+      will-change: transform;
+    }
+
+    .mode-pills {
+      width: min(92vw, 390px);
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
+    }
+
+    .pill {
+      min-width: 0; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,.08); border: 1px solid var(--border); border-radius: 8px;
+      color: rgba(255,255,255,.72); font-family: 'DM Sans', sans-serif; font-size: 10px;
+      font-weight: 300; letter-spacing: .13em; text-transform: uppercase;
+      padding: 0 12px; cursor: pointer; outline: none;
+      text-align: center; white-space: nowrap;
+      backdrop-filter: none;
+      transition: background .25s ease, border-color .25s ease, color var(--trans), box-shadow .25s ease;
+    }
+    .pill:hover { border-color: rgba(255,255,255,.34); color: #fff; background: rgba(255,255,255,.06); }
+    .pill:focus-visible {
+      border-color: rgba(255,255,255,.68);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.12);
+    }
+    .pill.active {
+      border-color: rgba(255,255,255,.5);
+      background: rgba(255,255,255,.1);
+      color: #fff;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 10px 24px rgba(0,0,0,.18);
+    }
+
+    .btn-row {
+      width: min(92vw, 360px);
+      display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.28fr) minmax(0,1fr);
+      gap: 12px; align-items: center;
+    }
+
+    .theme-picker {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 32px;
+    }
+
+    .theme-toggle {
+      min-width: 112px; height: 32px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      background: rgba(0,0,0,.08); border: 1px solid var(--border); border-radius: 8px;
+      color: rgba(255,255,255,.74); font-family: 'DM Sans', sans-serif; font-size: 10px;
+      font-weight: 300; letter-spacing: .16em; text-transform: uppercase;
+      padding: 0 14px; cursor: pointer; outline: none;
+      backdrop-filter: none;
+      transition: background .25s ease, border-color .25s ease, color var(--trans), box-shadow .25s ease, transform .2s ease;
+    }
+    .theme-toggle:hover,
+    .theme-picker.open .theme-toggle {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.34);
+      color: #fff;
+      background: rgba(255,255,255,.06);
+    }
+    .theme-toggle:focus-visible {
+      border-color: rgba(255,255,255,.68);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.12);
+    }
+    .theme-toggle-dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--cloud-e);
+      box-shadow: 0 0 12px var(--cloud-e);
+      transition: background var(--trans), box-shadow var(--trans);
+    }
+
+    .theme-popover {
+      position: absolute; left: 50%; bottom: calc(100% + 10px);
+      transform: translate(-50%, 8px) scale(.98);
+      display: flex; gap: 10px; align-items: center; justify-content: center;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 12px;
+      background: rgba(var(--bg-a-rgb), .72);
+      box-shadow: 0 18px 46px rgba(0,0,0,.22), inset 0 1px 0 rgba(var(--cloud-e-rgb),.1);
+      backdrop-filter: none;
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease, visibility .2s;
+    }
+    .theme-picker.open .theme-popover {
+      opacity: 1; visibility: visible; pointer-events: all;
+      transform: translate(-50%, 0) scale(1);
+    }
+
+    .theme-swatch {
+      width: 24px; height: 24px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.34);
+      background:
+        radial-gradient(circle at 32% 26%, rgba(255,255,255,.82) 0 10%, var(--swatch-hi) 11% 34%, var(--swatch-mid) 35% 68%, var(--swatch-deep) 100%);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 6px 14px rgba(0,0,0,.16);
+      cursor: pointer; outline: none; padding: 0;
+      transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+    }
+    .theme-swatch:hover { transform: translateY(-1px); border-color: rgba(255,255,255,.6); }
+    .theme-swatch:focus-visible {
+      border-color: rgba(255,255,255,.78);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.1), 0 0 0 3px rgba(255,255,255,.16);
+    }
+    .theme-swatch.active {
+      border-color: rgba(255,255,255,.88);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.12), 0 0 0 3px rgba(255,255,255,.12), 0 0 18px var(--swatch-mid);
+    }
+
+    .main-btn,
+    .ghost-btn {
+      min-width: 0; width: 100%; height: 42px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px; font-family: 'DM Sans', sans-serif;
+      text-transform: uppercase; cursor: pointer; outline: none;
+      text-align: center; white-space: nowrap;
+      backdrop-filter: none;
+      transition: transform .2s ease, background .25s ease, border-color .25s ease, color var(--trans), box-shadow .25s ease;
+    }
+
+    .main-btn {
+      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.3);
+      color: #fff; font-size: 12px; font-weight: 400; letter-spacing: .2em;
+      padding: 0 24px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.14);
+    }
+    .main-btn:hover { transform: translateY(-1px); background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.48); }
+    .main-btn:focus-visible {
+      border-color: rgba(255,255,255,.72);
+      box-shadow: 0 12px 30px rgba(0,0,0,.22), 0 0 0 3px rgba(255,255,255,.14), inset 0 1px 0 rgba(255,255,255,.14);
+    }
+    .main-btn:active { transform: scale(.97); }
+
+    .ghost-btn {
+      background: rgba(0,0,0,.08); border: 1px solid var(--border);
+      color: rgba(255,255,255,.74); font-size: 11px; font-weight: 300; letter-spacing: .16em;
+      padding: 0 16px;
+    }
+    .ghost-btn:hover {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.07);
+      border-color: rgba(255,255,255,.34);
+      color: #fff;
+    }
+    .ghost-btn:focus-visible {
+      border-color: rgba(255,255,255,.62);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.11);
+    }
+    .ghost-btn:active { transform: scale(.97); }
+
+    .session-meter {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+
+    .dots { display: flex; gap: 6px; align-items: center; }
+    .dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--muted); transition: background var(--trans), opacity .4s, box-shadow .4s; opacity: .35;
+    }
+    .dot.filled { opacity: 1; background: var(--cloud-e); box-shadow: 0 0 10px var(--cloud-e); }
+
+    .session-count {
+      font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 200;
+      letter-spacing: .22em; text-transform: uppercase;
+      color: var(--muted); transition: color var(--trans);
+    }
+
+    /* ── LOG TOGGLE BUTTON ── */
+    .log-toggle {
+      position: absolute; top: var(--top-y); right: var(--page-x);
+      min-width: 148px; height: 36px;
+      background: rgba(var(--bg-a-rgb), .06); border: 1px solid rgba(var(--cloud-e-rgb), .34);
+      border-radius: 8px; color: rgba(255,255,255,.8);
+      font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 300;
+      letter-spacing: .2em; text-transform: uppercase; padding: 0 20px;
+      cursor: pointer; outline: none; z-index: 100;
+      box-shadow: none;
+      transform: translateX(var(--log-shift)) translateY(var(--raise));
+      transition: transform .24s cubic-bezier(.2,.8,.2,1), background .18s ease, border-color .18s ease, color .18s ease, opacity .18s ease;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      will-change: transform;
+    }
+    .log-toggle:hover {
+      --raise: -1px;
+      border-color: rgba(var(--cloud-e-rgb), .54);
+      color: #fff;
+      background: rgba(var(--cloud-e-rgb), .08);
+    }
+    .log-toggle.has-data {
+      border-color: rgba(var(--cloud-e-rgb), .48);
+      background: rgba(var(--cloud-d-rgb), .07);
+    }
+    .log-toggle:focus-visible {
+      border-color: rgba(255,255,255,.62);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.11);
+    }
+    body.sidebar-open .log-toggle { right: var(--page-x); }
+    .log-toggle-label {
+      text-align: center;
+    }
+
+    .fullscreen-toggle {
+      position: absolute; top: var(--top-y); left: var(--page-x);
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,.08); border: 1px solid var(--border);
+      border-radius: 8px; color: rgba(255,255,255,.72);
+      cursor: pointer; outline: none; z-index: 100;
+      backdrop-filter: none;
+      transition: transform .2s ease, background .25s ease, border-color var(--trans), color var(--trans), box-shadow .25s ease;
+    }
+    .fullscreen-toggle:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.34);
+      color: #fff;
+      background: rgba(255,255,255,.06);
+    }
+    .fullscreen-toggle:focus-visible {
+      border-color: rgba(255,255,255,.62);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.11);
+    }
+    .fullscreen-icon {
+      position: relative;
+      width: 15px; height: 15px;
+      display: block;
+    }
+    .fullscreen-icon span {
+      position: absolute;
+      width: 6px; height: 6px;
+      border-color: currentColor;
+      opacity: .95;
+    }
+    .fullscreen-icon span:nth-child(1) { top: 0; left: 0; border-top: 1px solid; border-left: 1px solid; }
+    .fullscreen-icon span:nth-child(2) { top: 0; right: 0; border-top: 1px solid; border-right: 1px solid; }
+    .fullscreen-icon span:nth-child(3) { bottom: 0; left: 0; border-bottom: 1px solid; border-left: 1px solid; }
+    .fullscreen-icon span:nth-child(4) { bottom: 0; right: 0; border-bottom: 1px solid; border-right: 1px solid; }
+
+    .popout-toggle {
+      position: absolute; top: var(--top-y); left: calc(var(--page-x) + 44px);
+      min-width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: rgba(0,0,0,.08); border: 1px solid var(--border);
+      border-radius: 8px; color: rgba(255,255,255,.72);
+      cursor: pointer; outline: none; z-index: 100;
+      backdrop-filter: none;
+      padding: 0 10px;
+      transition: transform .2s ease, background .25s ease, border-color var(--trans), color var(--trans), box-shadow .25s ease;
+    }
+    .popout-toggle:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.34);
+      color: #fff;
+      background: rgba(255,255,255,.06);
+    }
+    .popout-toggle:focus-visible {
+      border-color: rgba(255,255,255,.62);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.11);
+    }
+    .popout-icon {
+      position: relative;
+      width: 16px; height: 16px;
+      display: block;
+      flex-shrink: 0;
+    }
+    .popout-icon::before {
+      content: '';
+      position: absolute;
+      left: 1px; bottom: 1px;
+      width: 12px; height: 10px;
+      border: 1px solid currentColor;
+      border-radius: 2px;
+      opacity: .9;
+    }
+    .popout-icon::after {
+      content: '';
+      position: absolute;
+      top: 1px; right: 1px;
+      width: 6px; height: 6px;
+      border-top: 1px solid currentColor;
+      border-right: 1px solid currentColor;
+      opacity: .95;
+    }
+    .popout-icon span {
+      position: absolute;
+      top: 3px; right: 1px;
+      width: 8px; height: 1px;
+      background: currentColor;
+      transform: rotate(-45deg);
+      transform-origin: right center;
+      opacity: .95;
+    }
+    .popout-label {
+      display: none;
+      font-size: 10px; font-weight: 300;
+      letter-spacing: .16em; text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      position: fixed; top: 0; right: 0; width: var(--sidebar-w); height: 100%;
+      background:
+        linear-gradient(180deg, rgba(var(--bg-a-rgb), .9), rgba(var(--bg-b-rgb), .78)),
+        radial-gradient(circle at 18% 8%, rgba(var(--cloud-e-rgb), .14), transparent 46%);
+      backdrop-filter: none;
+      border-left: 1px solid var(--panel-line);
+      transform: translateX(100%);
+      transition: transform .34s cubic-bezier(.2,.8,.2,1), background .75s ease, border-color .75s ease;
+      z-index: 200;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      box-shadow: -16px 0 46px rgba(0,0,0,.18);
+      will-change: transform;
+    }
+    body.sidebar-open .sidebar { transform: translateX(0); }
+
+    .sidebar-header {
+      padding: 32px 28px 20px;
+      border-bottom: 1px solid var(--panel-line);
+      flex-shrink: 0;
+    }
+
+    .sidebar-title {
+      font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 300;
+      letter-spacing: .08em; color: var(--tx); transition: color var(--trans);
+      margin-bottom: 4px;
+    }
+
+    .sidebar-subtitle {
+      font-size: 10px; font-weight: 200; letter-spacing: .2em;
+      text-transform: uppercase; color: var(--muted); transition: color var(--trans);
+    }
+
+    /* ── METRICS STRIP ── */
+    .metrics-strip {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      gap: 1px; background: var(--panel-line);
+      border-bottom: 1px solid var(--panel-line); flex-shrink: 0;
+    }
+    .metric-cell {
+      background: rgba(var(--bg-a-rgb), .46); padding: 14px 16px; text-align: center;
+    }
+    .metric-val {
+      font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 300;
+      color: var(--tx); transition: color var(--trans); line-height: 1;
+    }
+    .metric-label {
+      font-size: 9px; font-weight: 200; letter-spacing: .18em; text-transform: uppercase;
+      color: var(--muted); transition: color var(--trans); margin-top: 4px;
+    }
+
+    /* ── STREAK SECTION ── */
+    .streak-row {
+      padding: 16px 28px 12px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--panel-line); flex-shrink: 0;
+    }
+    .streak-label {
+      font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+      color: var(--muted); transition: color var(--trans);
+    }
+    .streak-pips { display: flex; gap: 5px; }
+    .streak-pip {
+      width: 8px; height: 8px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.2);
+      background: transparent; transition: background .4s, border-color var(--trans);
+    }
+    .streak-pip.lit { background: var(--cloud-e); border-color: var(--cloud-e); }
+
+    /* ── SESSION LOG ── */
+    .log-section { flex: 1; overflow-y: auto; padding: 0 0 20px; }
+    .log-section::-webkit-scrollbar { width: 3px; }
+    .log-section::-webkit-scrollbar-track { background: transparent; }
+    .log-section::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 999px; }
+
+    .log-section-label {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      font-size: 9px; letter-spacing: .22em; text-transform: uppercase;
+      color: var(--muted); padding: 16px 28px 10px;
+      transition: color var(--trans); border-bottom: 1px solid var(--panel-line);
+    }
+    .log-section-count {
+      letter-spacing: .14em;
+      color: var(--cloud-e);
+      opacity: .72;
+    }
+
+    .log-empty {
+      padding: 32px 28px; text-align: center;
+      font-family: 'Cormorant Garamond', serif; font-size: 15px; font-style: italic;
+      color: var(--muted); opacity: .6; line-height: 1.7;
+      transition: color var(--trans);
+    }
+
+    .log-entry {
+      padding: 14px 28px; border-bottom: 1px solid var(--panel-line);
+      cursor: default; transition: background .2s;
+      position: relative;
+      border-left: 2px solid transparent;
+    }
+    .log-entry.completed { border-left-color: rgba(var(--cloud-e-rgb), .42); }
+    .log-entry.incomplete { border-left-color: rgba(255,255,255,.14); }
+    .log-entry:hover { background: var(--panel-hover); }
+
+    .log-entry-header {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .log-entry-name {
+      font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 400;
+      color: var(--tx); transition: color var(--trans); line-height: 1.2;
+      flex: 1; word-break: break-word;
+    }
+    .log-entry-name-input {
+      font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 400;
+      color: var(--tx); background: transparent; border: none;
+      border-bottom: 1px solid rgba(255,255,255,.2); outline: none;
+      padding: 0 0 2px; width: 100%; letter-spacing: .02em;
+      transition: border-color .2s, color var(--trans);
+    }
+    .log-entry-name-input:focus { border-color: rgba(255,255,255,.5); }
+    .log-entry-name-input::placeholder { color: rgba(255,255,255,.25); font-style: italic; }
+
+    .log-mode-badge {
+      font-size: 8px; letter-spacing: .16em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 2px;
+      font-weight: 400;
+    }
+    .log-mode-badge.work,
+    .log-mode-badge.short,
+    .log-mode-badge.long  { background: rgba(var(--cloud-d-rgb), .16); color: var(--cloud-e); }
+    .log-status {
+      font-size: 8px; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--muted); opacity: .76;
+      flex-shrink: 0;
+    }
+
+    .log-entry-meta {
+      display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    }
+    .log-meta-item {
+      font-size: 10px; font-weight: 200; letter-spacing: .1em;
+      color: var(--muted); transition: color var(--trans);
+    }
+    .log-meta-sep { color: rgba(255,255,255,.15); font-size: 10px; }
+
+    .log-stops {
+      margin-top: 8px; display: flex; flex-direction: column; gap: 3px;
+    }
+    .log-stop-item {
+      font-size: 9px; letter-spacing: .12em; color: var(--muted);
+      transition: color var(--trans); padding-left: 10px;
+      position: relative; opacity: .75;
+    }
+    .log-stop-item::before {
+      content: ''; position: absolute; left: 0; top: 50%;
+      transform: translateY(-50%); width: 3px; height: 3px;
+      border-radius: 50%; background: var(--muted); opacity: .5;
+    }
+
+    .log-edit-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: rgba(255,255,255,.2); font-size: 11px; padding: 2px 4px;
+      transition: color .2s; line-height: 1; flex-shrink: 0;
+    }
+    .log-edit-btn:hover { color: rgba(255,255,255,.6); }
+
+    /* ── SIDEBAR FOOTER ── */
+    .sidebar-footer {
+      padding: 16px 28px; border-top: 1px solid var(--panel-line); flex-shrink: 0;
+      display: flex; gap: 10px;
+    }
+    .sidebar-foot-btn {
+      flex: 1; background: transparent; border: 1px solid var(--panel-line);
+      border-radius: 8px; color: var(--muted); font-family: 'DM Sans', sans-serif;
+      font-size: 10px; font-weight: 300; letter-spacing: .16em; text-transform: uppercase;
+      padding: 10px 8px; cursor: pointer; outline: none;
+      transition: background .2s ease, border-color var(--trans), color var(--trans);
+    }
+    .sidebar-foot-btn:hover { border-color: rgba(255,255,255,.25); color: var(--tx); }
+    .sidebar-foot-btn:disabled {
+      opacity: .38;
+      cursor: default;
+      border-color: rgba(255,255,255,.06);
+      color: var(--muted);
+    }
+    .sidebar-foot-btn:disabled:hover {
+      border-color: rgba(255,255,255,.06);
+      color: var(--muted);
+    }
+
+    /* ── NAME CURRENT SESSION ── */
+    .name-current {
+      padding: 12px 28px; border-bottom: 1px solid var(--panel-line); flex-shrink: 0;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .name-current input {
+      flex: 1; background: transparent; border: none;
+      border-bottom: 1px solid rgba(255,255,255,.14); outline: none;
+      font-family: 'Cormorant Garamond', serif; font-size: 14px; font-weight: 300;
+      color: var(--tx); padding: 4px 0; letter-spacing: .04em;
+      transition: border-color .2s, color var(--trans);
+    }
+    .name-current input:focus { border-color: rgba(255,255,255,.4); }
+    .name-current input::placeholder { color: rgba(255,255,255,.2); font-style: italic; }
+    .name-current-label {
+      font-size: 9px; letter-spacing: .18em; text-transform: uppercase;
+      color: var(--muted); white-space: nowrap; transition: color var(--trans);
+    }
+
+    @media (max-width: 560px) {
+      :root {
+        --page-x: 18px;
+        --top-y: 24px;
+        --scene-top: 94px;
+        --scene-bottom: 220px;
+        --controls-bottom: 28px;
+        --sidebar-w: min(320px, 90vw);
+      }
+      body.sidebar-open {
+        --main-shift: 0px;
+        --log-shift: 0px;
+      }
+      .time-display {
+        font-size: clamp(80px, 24vw, 112px);
+        letter-spacing: .01em;
+      }
+      .time-gauge {
+        width: min(88vw, 330px);
+        margin-bottom: -4px;
+      }
+      .log-toggle {
+        min-width: 128px;
+        padding: 8px 14px;
+        font-size: 9px;
+        letter-spacing: .15em;
+      }
+      .fullscreen-toggle {
+        width: 34px;
+        height: 34px;
+      }
+      body.sidebar-open #canvas { width: 100%; }
+      body.sidebar-open .scene {
+        right: 0;
+        opacity: .24;
+      }
+      body.sidebar-open .controls {
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0;
+        pointer-events: none;
+      }
+      body.sidebar-open .log-toggle {
+        right: var(--page-x);
+      }
+      .controls {
+        gap: 16px;
+      }
+      .mode-pills { width: min(94vw, 360px); gap: 6px; }
+      .btn-row { width: min(94vw, 340px); gap: 8px; }
+      .pill {
+        height: 32px;
+        font-size: clamp(8px, 2.25vw, 10px);
+        letter-spacing: .07em;
+        padding: 0 4px;
+      }
+      .main-btn,
+      .ghost-btn {
+        height: 40px;
+        letter-spacing: .12em;
+      }
+      .main-btn { padding: 0 18px; }
+      .ghost-btn { padding: 0 10px; }
+      .theme-toggle {
+        height: 30px;
+        min-width: 104px;
+        font-size: 9px;
+        letter-spacing: .13em;
+      }
+      .theme-swatch {
+        width: 26px;
+        height: 26px;
+      }
+    }
+
+    @media (max-width: 560px) and (max-height: 680px) {
+      :root {
+        --scene-bottom: 178px;
+        --controls-bottom: 18px;
+      }
+      .scene {
+        justify-content: flex-start;
+        padding-top: 112px;
+      }
+      .time-wrap { gap: 8px; }
+      .time-display { font-size: clamp(74px, 22vw, 98px); }
+      .time-gauge {
+        width: min(86vw, 280px);
+        margin-bottom: -4px;
+      }
+      .controls {
+        gap: 12px;
+      }
+      .mode-pills { width: min(94vw, 310px); gap: 5px; }
+      .btn-row { width: min(94vw, 300px); gap: 8px; }
+      .pill {
+        height: 30px;
+        font-size: 8px;
+        letter-spacing: .06em;
+      }
+      .main-btn,
+      .ghost-btn {
+        height: 38px;
+        font-size: 10px;
+        letter-spacing: .1em;
+      }
+      .theme-toggle {
+        height: 29px;
+        min-width: 98px;
+        font-size: 8px;
+      }
+      .theme-popover {
+        gap: 8px;
+        padding: 9px 10px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .wordmark {
+        top: 68px;
+        font-size: 12px;
+        letter-spacing: .28em;
+      }
+    }
+
+    @media (max-height: 520px) and (min-width: 700px) {
+      :root {
+        --page-x: 28px;
+        --top-y: 26px;
+        --scene-top: 76px;
+        --scene-bottom: 28px;
+        --controls-bottom: 28px;
+      }
+      body.sidebar-open {
+        --main-shift: 0px;
+      }
+      .scene {
+        right: 46%;
+        padding: var(--scene-top) 0 var(--scene-bottom);
+      }
+      body.sidebar-open .scene { right: calc(46% + var(--sidebar-w)); }
+      .time-gauge {
+        width: min(34vw, 260px);
+        margin-bottom: -2px;
+      }
+      .time-display {
+        font-size: clamp(72px, 16vh, 108px);
+      }
+      .mode-label { font-size: 10px; letter-spacing: .22em; }
+      .session-name-display { font-size: 14px; }
+      .session-done-msg { font-size: 15px; }
+      .controls {
+        left: auto;
+        right: 28px;
+        bottom: var(--controls-bottom);
+        transform: none;
+        gap: 10px;
+      }
+      body.sidebar-open .controls {
+        left: auto;
+        right: calc(var(--sidebar-w) + 28px);
+      }
+      .mode-pills {
+        width: min(42vw, 330px);
+        gap: 6px;
+      }
+      .btn-row {
+        width: min(40vw, 310px);
+        gap: 8px;
+      }
+      .pill {
+        height: 30px;
+        font-size: 8px;
+        letter-spacing: .07em;
+        padding: 0 6px;
+      }
+      .main-btn,
+      .ghost-btn {
+        height: 36px;
+        font-size: 10px;
+        letter-spacing: .11em;
+      }
+      .theme-toggle {
+        height: 29px;
+        min-width: 98px;
+        font-size: 8px;
+      }
+      .session-meter { gap: 6px; }
+      .theme-popover {
+        gap: 8px;
+        padding: 9px 10px;
+      }
+
+      body.sidebar-open .scene {
+        right: var(--sidebar-w);
+        justify-content: flex-start;
+        padding-top: 76px;
+        padding-bottom: 150px;
+      }
+      body.sidebar-open .time-wrap { gap: 6px; }
+      body.sidebar-open .time-gauge {
+        width: 180px;
+        margin-bottom: -2px;
+      }
+      body.sidebar-open .time-display {
+        font-size: 56px;
+      }
+      body.sidebar-open .mode-label {
+        font-size: 9px;
+        letter-spacing: .18em;
+      }
+      body.sidebar-open .controls {
+        left: calc((100vw - var(--sidebar-w)) / 2);
+        right: auto;
+        bottom: 8px;
+        transform: translateX(-50%);
+        gap: 6px;
+      }
+      body.sidebar-open .mode-pills {
+        width: min(52vw, 280px);
+        gap: 5px;
+      }
+      body.sidebar-open .btn-row {
+        width: min(50vw, 270px);
+        gap: 7px;
+      }
+      body.sidebar-open .pill {
+        height: 28px;
+        font-size: 7px;
+      }
+      body.sidebar-open .main-btn,
+      body.sidebar-open .ghost-btn {
+        height: 34px;
+        font-size: 9px;
+      }
+      body.sidebar-open .theme-toggle {
+        height: 27px;
+      }
+      body.sidebar-open .session-meter {
+        gap: 5px;
+      }
+    }
+
+    body.popout-mode {
+      min-width: 320px;
+      min-height: 420px;
+    }
+    body.popout-mode .fullscreen-toggle,
+    body.popout-mode .log-toggle,
+    body.popout-mode .sidebar {
+      display: none;
+    }
+    body.popout-mode .popout-toggle {
+      left: auto;
+      right: 18px;
+      top: 18px;
+      width: auto;
+      min-width: 92px;
+      height: 34px;
+      padding: 0 12px;
+      background: rgba(var(--bg-a-rgb), .22);
+      border-color: rgba(var(--cloud-e-rgb), .34);
+      backdrop-filter: none;
+    }
+    body.popout-mode .popout-label {
+      display: inline;
+    }
+    body.popout-mode .popout-icon::after {
+      top: 8px;
+      right: 8px;
+      border-top: none;
+      border-right: none;
+      border-bottom: 1px solid currentColor;
+      border-left: 1px solid currentColor;
+    }
+    body.popout-mode .popout-icon span {
+      top: 10px;
+      right: 6px;
+    }
+    body.popout-mode .scene {
+      right: 0 !important;
+      padding: 78px 18px 144px;
+      justify-content: center;
+      opacity: 1;
+      transform: none;
+    }
+    body.popout-mode .wordmark {
+      top: 24px;
+      left: 20px;
+      transform: none;
+      font-size: 13px;
+      letter-spacing: .28em;
+    }
+    body.popout-mode .time-wrap {
+      gap: 10px;
+    }
+    body.popout-mode .time-gauge {
+      width: min(84vw, 305px);
+      margin-bottom: 2px;
+      transform: translateY(8px);
+    }
+    body.popout-mode .time-display {
+      font-size: clamp(82px, 28vw, 130px);
+      line-height: 1.02;
+      letter-spacing: .015em;
+      max-width: 96vw;
+      margin-bottom: 8px;
+    }
+    body.popout-mode .mode-label {
+      font-size: 10px;
+      letter-spacing: .24em;
+      line-height: 1.4;
+    }
+    body.popout-mode .session-name-display {
+      max-width: min(82vw, 300px);
+    }
+    body.popout-mode .controls {
+      display: flex;
+      left: 50%;
+      bottom: 18px;
+      width: min(90vw, 360px);
+      gap: 10px;
+      transform: translateX(-50%);
+      opacity: 1;
+      pointer-events: all;
+    }
+    body.popout-mode .mode-pills,
+    body.popout-mode .btn-row {
+      width: 100%;
+    }
+    body.popout-mode .mode-pills {
+      gap: 6px;
+    }
+    body.popout-mode .btn-row {
+      gap: 8px;
+    }
+    body.popout-mode .pill {
+      height: 30px;
+      padding: 0 6px;
+      font-size: 8px;
+      letter-spacing: .07em;
+    }
+    body.popout-mode .main-btn,
+    body.popout-mode .ghost-btn {
+      height: 36px;
+      font-size: 10px;
+      letter-spacing: .11em;
+    }
+    body.popout-mode .main-btn {
+      padding: 0 18px;
+    }
+    body.popout-mode .ghost-btn {
+      padding: 0 10px;
+    }
+    body.popout-mode .theme-picker,
+    body.popout-mode .session-meter {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div class="scene">
+  <div class="wordmark">Nimbus</div>
+  <div class="time-wrap">
+    <svg class="time-gauge" id="timeGauge" viewBox="0 0 360 118" aria-hidden="true">
+      <path class="gauge-track" id="gaugeTrack"></path>
+      <path class="gauge-progress" id="gaugeProgress"></path>
+      <g id="gaugeTicks"></g>
+      <circle class="gauge-marker" id="gaugeMarker" r="3"></circle>
+    </svg>
+    <div class="time-display" id="timeDisplay">25:00</div>
+    <div class="mode-label" id="modeLabel">Focus session</div>
+    <div class="session-name-display" id="sessionNameDisplay"></div>
+    <div class="session-done-msg" id="doneMsg">Session complete — breathe</div>
+  </div>
+</div>
+
+<button class="fullscreen-toggle" id="fullscreenToggle" aria-label="Enter full screen" title="Full screen (F)">
+  <span class="fullscreen-icon" aria-hidden="true">
+    <span></span><span></span><span></span><span></span>
+  </span>
+</button>
+
+<button class="popout-toggle" id="popoutToggle" aria-label="Open popout timer" title="Pop out timer (P)">
+  <span class="popout-icon" aria-hidden="true"><span></span></span>
+  <span class="popout-label">Pop in</span>
+</button>
+
+<button class="log-toggle" id="logToggle" title="Session log (L)" aria-controls="sidebar" aria-expanded="false">
+  <span class="log-toggle-label">Session log</span>
+</button>
+
+<div class="controls">
+  <div class="mode-pills">
+    <button class="pill active" data-mode="work" data-minutes="25" title="Focus (1)">Focus</button>
+    <button class="pill" data-mode="short" data-minutes="5" title="Short break (2)">Short break</button>
+    <button class="pill" data-mode="long" data-minutes="15" title="Long break (3)">Long break</button>
+  </div>
+  <div class="btn-row">
+    <button class="ghost-btn" id="resetBtn" title="Reset (R)">Reset</button>
+    <button class="main-btn" id="playBtn" title="Begin / pause (Space)">Begin</button>
+    <button class="ghost-btn" id="stopBtn" title="Clear (C)">Clear</button>
+  </div>
+  <div class="theme-picker" id="themePicker">
+    <button class="theme-toggle" id="themeToggle" aria-expanded="false" aria-controls="themePopover" aria-haspopup="true" title="Theme (T)">
+      <span class="theme-toggle-dot" aria-hidden="true"></span>
+      Theme
+    </button>
+    <div class="theme-popover" id="themePopover" aria-label="Color theme" aria-hidden="true">
+      <button class="theme-swatch active" data-theme="blue" style="--swatch-hi:#8dc8f8;--swatch-mid:#4a9de8;--swatch-deep:#0e3a6e" aria-label="Blue theme" title="Blue"></button>
+      <button class="theme-swatch" data-theme="mojave" style="--swatch-hi:#ffb19a;--swatch-mid:#d95f4e;--swatch-deep:#5a1f1c" aria-label="Mojave red theme" title="Mojave red"></button>
+      <button class="theme-swatch" data-theme="everest" style="--swatch-hi:#a8ecd4;--swatch-mid:#38aa86;--swatch-deep:#123b32" aria-label="Everest green theme" title="Everest green"></button>
+      <button class="theme-swatch" data-theme="amber" style="--swatch-hi:#ffe08a;--swatch-mid:#e2a93a;--swatch-deep:#5b3a0b" aria-label="Amber theme" title="Amber"></button>
+      <button class="theme-swatch" data-theme="fission" style="--swatch-hi:#d6a7ff;--swatch-mid:#a756f5;--swatch-deep:#39215b" aria-label="Fission purple theme" title="Fission purple"></button>
+    </div>
+  </div>
+  <div class="session-meter">
+    <div class="dots" id="dots">
+      <div class="dot"></div><div class="dot"></div>
+      <div class="dot"></div><div class="dot"></div>
+    </div>
+    <div class="session-count" id="sessCount">0 of 4 sessions</div>
+  </div>
+</div>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-title">Session log</div>
+    <div class="sidebar-subtitle" id="sidebarDate"></div>
+  </div>
+
+  <div class="metrics-strip">
+    <div class="metric-cell">
+      <div class="metric-val" id="metricTotal">0</div>
+      <div class="metric-label">Sessions</div>
+    </div>
+    <div class="metric-cell">
+      <div class="metric-val" id="metricFocus">0m</div>
+      <div class="metric-label">Focus time</div>
+    </div>
+    <div class="metric-cell">
+      <div class="metric-val" id="metricStreak">0</div>
+      <div class="metric-label">Streak</div>
+    </div>
+  </div>
+
+  <div class="streak-row">
+    <div class="streak-label">Current run</div>
+    <div class="streak-pips" id="streakPips">
+      <div class="streak-pip"></div><div class="streak-pip"></div>
+      <div class="streak-pip"></div><div class="streak-pip"></div>
+      <div class="streak-pip"></div><div class="streak-pip"></div>
+      <div class="streak-pip"></div><div class="streak-pip"></div>
+    </div>
+  </div>
+
+  <div class="name-current">
+    <div class="name-current-label">Label</div>
+    <input type="text" id="currentSessionName" placeholder="Name this session…" maxlength="48" />
+  </div>
+
+  <div class="log-section-label">
+    <span>History</span>
+    <span class="log-section-count" id="historyCount">0</span>
+  </div>
+
+  <div class="log-section" id="logSection">
+    <div class="log-empty" id="logEmpty">No sessions yet.<br>Begin a focus block to start your log.</div>
+  </div>
+
+  <div class="sidebar-footer">
+    <button class="sidebar-foot-btn" id="exportBtn">Export CSV</button>
+    <button class="sidebar-foot-btn" id="clearLogBtn">Clear log</button>
+  </div>
+</aside>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+const themes = {
+  blue:    { a:'#162342', b:'#08386d', c:'#1c5ea8', d:'#4a9de8', e:'#a8dcff', text:'#f1f9ff', muted:'rgba(225,244,255,0.72)', border:'rgba(190,226,255,0.32)' },
+  mojave:  { a:'#2d1111', b:'#591a18', c:'#91342c', d:'#e26a58', e:'#ffc0ae', text:'#fff2ed', muted:'rgba(255,218,207,0.74)', border:'rgba(255,176,150,0.34)' },
+  everest: { a:'#0d241d', b:'#0f3d32', c:'#1b6655', d:'#3eb991', e:'#baf5df', text:'#f1fff8', muted:'rgba(205,246,230,0.74)', border:'rgba(140,238,200,0.34)' },
+  amber:   { a:'#2b1e0b', b:'#5a3704', c:'#9a650f', d:'#ebb342', e:'#ffe79a', text:'#fff7df', muted:'rgba(255,228,166,0.74)', border:'rgba(255,198,86,0.34)' },
+  fission: { a:'#1e1430', b:'#39205e', c:'#65339b', d:'#af61ff', e:'#dfbdff', text:'#fbf4ff', muted:'rgba(228,197,255,0.74)', border:'rgba(200,140,255,0.34)' }
+};
+
+const root = document.documentElement;
+const STORAGE_KEY = 'nimbus-pomodoro-cloud-v2';
+const IS_POPOUT = new URLSearchParams(window.location.search).get('popout') === '1';
+const SYNC_KEY = `${STORAGE_KEY}:timer-sync`;
+const syncChannel = 'BroadcastChannel' in window ? new BroadcastChannel(SYNC_KEY) : null;
+let mode = 'work', total = 25*60, remain = total, remainingMs = total*1000, running = false, tid = null, timerDeadline = 0;
+let sessions = 0, sessionTarget = 4;
+let currentTheme = 'blue';
+let pal = themes.blue;
+let palRgb = {};
+let dissolve = 0;
+let gaugeLength = 0;
+let popoutWindow = null;
+let applyingRemoteState = false;
+const handledMessageIds = new Set();
+
+const gaugeConfig = {
+  cx: 180,
+  cy: 150,
+  r: 145,
+  start: 210,
+  end: 330,
+  ticks: 49,
+};
+
+// ── SESSION LOG DATA ──
+let sessionLog = [];       // completed sessions
+let currentStreak = 0;
+let sessionStartTime = null;
+let sessionStops = [];     // pauses within current session: [{at, elapsed}]
+let sessionStartElapsed = 0;
+
+function toIsoDate(value, fallback = new Date()) {
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : fallback.toISOString();
+}
+
+function normalizeLogEntry(entry) {
+  const startTime = toIsoDate(entry.startTime);
+  return {
+    id: Number(entry.id) || Date.now(),
+    mode: ['work','short','long'].includes(entry.mode) ? entry.mode : 'work',
+    name: typeof entry.name === 'string' && entry.name.trim() ? entry.name.trim() : null,
+    startTime,
+    endTime: toIsoDate(entry.endTime, new Date(startTime)),
+    planned: Number(entry.planned) || 0,
+    elapsed: Number(entry.elapsed) || 0,
+    completed: !!entry.completed,
+    stops: Array.isArray(entry.stops) ? entry.stops.map(stop => ({
+      at: toIsoDate(stop.at, new Date(startTime)),
+      elapsed: Number(stop.elapsed) || 0,
+      remaining: Number(stop.remaining) || 0,
+    })) : [],
+  };
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      sessionLog,
+      currentStreak,
+      sessions,
+      currentTheme,
+      savedAt: new Date().toISOString(),
+    }));
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const saved = JSON.parse(raw);
+    if(Array.isArray(saved.sessionLog)) {
+      sessionLog = saved.sessionLog.map(normalizeLogEntry).filter(entry => entry.elapsed >= 3);
+    }
+    currentStreak = Math.max(0, Number(saved.currentStreak) || 0);
+    sessions = Math.min(sessionTarget, Math.max(0, Number(saved.sessions) || 0));
+    if(themes[saved.currentTheme]) currentTheme = saved.currentTheme;
+  } catch(e) {}
+}
+
+function setPalette(p) {
+  pal = p;
+  const pa = hexToRgb(p.a);
+  const pb = hexToRgb(p.b);
+  const pc = hexToRgb(p.c);
+  const pd = hexToRgb(p.d);
+  const pe = hexToRgb(p.e);
+  palRgb = { a: pa, b: pb, c: pc, d: pd, e: pe };
+  root.style.setProperty('--bg-a', p.a);
+  root.style.setProperty('--bg-b', p.b);
+  root.style.setProperty('--cloud-c', p.c);
+  root.style.setProperty('--cloud-d', p.d);
+  root.style.setProperty('--cloud-e', p.e);
+  root.style.setProperty('--bg-a-rgb', pa.join(','));
+  root.style.setProperty('--bg-b-rgb', pb.join(','));
+  root.style.setProperty('--cloud-c-rgb', pc.join(','));
+  root.style.setProperty('--cloud-d-rgb', pd.join(','));
+  root.style.setProperty('--cloud-e-rgb', pe.join(','));
+  root.style.setProperty('--tx', p.text);
+  root.style.setProperty('--muted', p.muted);
+  root.style.setProperty('--border', p.border);
+}
+
+function setTheme(name, persist = true) {
+  if(!themes[name]) return;
+  currentTheme = name;
+  setPalette(themes[name]);
+  document.querySelectorAll('.theme-swatch').forEach(b => {
+    const active = b.dataset.theme === name;
+    b.classList.toggle('active', active);
+    b.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+  if(persist) saveState();
+  if(!IS_POPOUT && !applyingRemoteState) broadcastTimerState();
+}
+
+function setThemePopover(open) {
+  const picker = document.getElementById('themePicker');
+  const toggle = document.getElementById('themeToggle');
+  const popover = document.getElementById('themePopover');
+  picker.classList.toggle('open', open);
+  toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  popover.setAttribute('aria-hidden', open ? 'false' : 'true');
+}
+
+function gaugePoint(angle, radius = gaugeConfig.r) {
+  const a = angle * Math.PI / 180;
+  return {
+    x: gaugeConfig.cx + Math.cos(a) * radius,
+    y: gaugeConfig.cy + Math.sin(a) * radius,
+  };
+}
+
+function gaugeArcPath(start, end, radius = gaugeConfig.r) {
+  const a = gaugePoint(start, radius);
+  const b = gaugePoint(end, radius);
+  const largeArc = Math.abs(end - start) > 180 ? 1 : 0;
+  return `M ${a.x.toFixed(2)} ${a.y.toFixed(2)} A ${radius} ${radius} 0 ${largeArc} 1 ${b.x.toFixed(2)} ${b.y.toFixed(2)}`;
+}
+
+function buildGauge() {
+  const track = document.getElementById('gaugeTrack');
+  const progress = document.getElementById('gaugeProgress');
+  const ticks = document.getElementById('gaugeTicks');
+  const path = gaugeArcPath(gaugeConfig.start, gaugeConfig.end);
+
+  track.setAttribute('d', path);
+  progress.setAttribute('d', path);
+  ticks.innerHTML = '';
+
+  for(let i = 0; i < gaugeConfig.ticks; i++) {
+    const ratio = i / (gaugeConfig.ticks - 1);
+    const angle = gaugeConfig.start + (gaugeConfig.end - gaugeConfig.start) * ratio;
+    const major = i % 6 === 0;
+    const inner = gaugePoint(angle, gaugeConfig.r - (major ? 17 : 11));
+    const outer = gaugePoint(angle, gaugeConfig.r + 2);
+    const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    tick.setAttribute('x1', inner.x.toFixed(2));
+    tick.setAttribute('y1', inner.y.toFixed(2));
+    tick.setAttribute('x2', outer.x.toFixed(2));
+    tick.setAttribute('y2', outer.y.toFixed(2));
+    tick.classList.add('gauge-tick');
+    if(major) tick.classList.add('major');
+    ticks.appendChild(tick);
+  }
+
+  gaugeLength = progress.getTotalLength();
+  progress.style.strokeDasharray = gaugeLength;
+  updateGauge();
+}
+
+function updateGauge() {
+  const progressPath = document.getElementById('gaugeProgress');
+  const marker = document.getElementById('gaugeMarker');
+  if(!gaugeLength || !progressPath || !marker) return;
+
+  const remaining = Math.max(0, Math.min(1, remainingMs / (total*1000)));
+  progressPath.style.strokeDashoffset = gaugeLength * (1 - remaining);
+
+  const markerAngle = gaugeConfig.start + (gaugeConfig.end - gaugeConfig.start) * remaining;
+  const markerPoint = gaugePoint(markerAngle, gaugeConfig.r);
+  marker.setAttribute('cx', markerPoint.x.toFixed(2));
+  marker.setAttribute('cy', markerPoint.y.toFixed(2));
+
+  document.querySelectorAll('.gauge-tick').forEach((tick, i) => {
+    const ratio = i / (gaugeConfig.ticks - 1);
+    tick.classList.toggle('active', remaining > 0 && ratio <= remaining);
+  });
+}
+
+function updateFullscreenButton() {
+  const btn = document.getElementById('fullscreenToggle');
+  const active = !!document.fullscreenElement;
+  btn.classList.toggle('active', active);
+  btn.setAttribute('aria-label', active ? 'Exit full screen' : 'Enter full screen');
+  btn.title = active ? 'Exit full screen (F)' : 'Full screen (F)';
+}
+
+function hotkeysShouldIgnore(e) {
+  if(e.metaKey || e.ctrlKey || e.altKey) return true;
+  const el = e.target;
+  if(!el) return false;
+  const tag = el.tagName;
+  return el.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+}
+
+function sendMainCommand(action, data = {}) {
+  const message = {
+    type: 'timer-command',
+    action,
+    data,
+    source: 'popout',
+    sentAt: Date.now(),
+  };
+  try {
+    if(IS_POPOUT && window.opener && !window.opener.closed && window.opener.handleSyncMessage) {
+      window.opener.handleSyncMessage(message);
+      if(window.opener.getTimerState) applyTimerState(window.opener.getTimerState());
+      return;
+    }
+  } catch(e) {}
+  postSyncMessage({ type: 'timer-command', action, data });
+}
+
+function togglePlay() {
+  if(IS_POPOUT) {
+    sendMainCommand('toggle-play');
+    return;
+  }
+  running ? stopTimer(true) : startTimer();
+}
+
+function resetCurrentTimer() {
+  if(IS_POPOUT) {
+    sendMainCommand('reset');
+    return;
+  }
+  if(running || hasMeaningfulProgress()) commitSession(false);
+  stopTimer(false); setRemainingMs(total*1000); dissolve=0;
+  sessionStartTime=null; sessionStops=[];
+  document.getElementById('doneMsg').classList.remove('visible');
+  document.getElementById('currentSessionName').value = '';
+  updateUI();
+}
+
+function clearCurrentCycle() {
+  if(IS_POPOUT) {
+    sendMainCommand('clear');
+    return;
+  }
+  if(running || hasMeaningfulProgress()) commitSession(false);
+  stopTimer(false); setRemainingMs(total*1000); sessions=0; dissolve=0;
+  sessionStartTime=null; sessionStops=[];
+  document.getElementById('doneMsg').classList.remove('visible');
+  document.getElementById('currentSessionName').value = '';
+  updateUI();
+  saveState();
+}
+
+function toggleSessionLog() {
+  easeCanvasDuringInteraction();
+  setThemePopover(false);
+  document.body.classList.toggle('sidebar-open');
+  document.getElementById('logToggle').setAttribute(
+    'aria-expanded',
+    document.body.classList.contains('sidebar-open') ? 'true' : 'false'
+  );
+  updateMetrics();
+}
+
+function toggleThemePicker() {
+  const picker = document.getElementById('themePicker');
+  setThemePopover(!picker.classList.contains('open'));
+}
+
+async function toggleFullscreen() {
+  easeCanvasDuringInteraction();
+  setThemePopover(false);
+  try {
+    if(document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await document.documentElement.requestFullscreen();
+    }
+  } catch(e) {}
+  updateFullscreenButton();
+}
+
+function postSyncMessage(message) {
+  const payload = {
+    ...message,
+    source: IS_POPOUT ? 'popout' : 'main',
+    sentAt: Date.now(),
+    id: `${IS_POPOUT ? 'popout' : 'main'}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  };
+  if(syncChannel) syncChannel.postMessage(payload);
+  try {
+    localStorage.setItem(SYNC_KEY, JSON.stringify(payload));
+  } catch(e) {}
+  try {
+    const envelope = { nimbusSync: true, key: SYNC_KEY, payload };
+    if(IS_POPOUT && window.opener && !window.opener.closed) {
+      window.opener.postMessage(envelope, '*');
+    } else if(!IS_POPOUT && popoutWindow && !popoutWindow.closed) {
+      popoutWindow.postMessage(envelope, '*');
+    }
+  } catch(e) {}
+}
+
+function getTimerState() {
+  syncRemainingFromClock();
+  return {
+    mode,
+    total,
+    remain,
+    remainingMs,
+    running,
+    sessions,
+    currentTheme,
+    dissolve,
+    currentName: getCurrentName(),
+    doneVisible: document.getElementById('doneMsg').classList.contains('visible'),
+  };
+}
+
+function broadcastTimerState() {
+  if(IS_POPOUT) return;
+  const state = getTimerState();
+  postSyncMessage({ type: 'timer-state', state });
+  try {
+    if(popoutWindow && !popoutWindow.closed && popoutWindow.applyTimerState) {
+      popoutWindow.applyTimerState(state);
+    }
+  } catch(e) {}
+}
+
+function applyTimerState(state) {
+  if(!IS_POPOUT || !state) return;
+  applyingRemoteState = true;
+  mode = ['work','short','long'].includes(state.mode) ? state.mode : mode;
+  total = Math.max(1, Number(state.total) || total);
+  if(Number.isFinite(Number(state.remainingMs))) {
+    setRemainingMs(state.remainingMs);
+  } else {
+    setRemainingMs(Math.max(0, Math.min(total, Number(state.remain) || 0)) * 1000);
+  }
+  running = !!state.running;
+  sessions = Math.min(sessionTarget, Math.max(0, Number(state.sessions) || 0));
+  dissolve = Math.max(0, Math.min(1, Number(state.dissolve) || 0));
+  if(themes[state.currentTheme]) setTheme(state.currentTheme, false);
+  document.querySelectorAll('.pill').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  document.getElementById('currentSessionName').value = state.currentName || '';
+  document.getElementById('doneMsg').classList.toggle('visible', !!state.doneVisible);
+  updateUI();
+  applyingRemoteState = false;
+}
+
+function handleSyncMessage(message) {
+  if(!message || !message.type) return;
+  if(message.id) {
+    if(handledMessageIds.has(message.id)) return;
+    handledMessageIds.add(message.id);
+    if(handledMessageIds.size > 80) handledMessageIds.delete(handledMessageIds.values().next().value);
+  }
+  if(message.type === 'timer-state') {
+    applyTimerState(message.state);
+    return;
+  }
+  if(message.type === 'timer-command' && !IS_POPOUT) {
+    executeTimerCommand(message.action, message.data);
+    return;
+  }
+  if(message.type === 'request-state' && !IS_POPOUT) {
+    broadcastTimerState();
+    return;
+  }
+  if(message.type === 'focus-main' && !IS_POPOUT) {
+    window.focus();
+  }
+}
+
+function executeTimerCommand(action, data = {}) {
+  if(action === 'toggle-play') {
+    togglePlay();
+    return;
+  }
+  if(action === 'reset') {
+    resetCurrentTimer();
+    return;
+  }
+  if(action === 'clear') {
+    clearCurrentCycle();
+    return;
+  }
+  if(action === 'set-mode' && ['work','short','long'].includes(data.mode)) {
+    setMode(data.mode, Number(data.minutes) || 25);
+  }
+}
+
+function applyLastStoredTimerState() {
+  if(!IS_POPOUT) return;
+  try {
+    const raw = localStorage.getItem(SYNC_KEY);
+    if(!raw) return;
+    const message = JSON.parse(raw);
+    if(message.type === 'timer-state') applyTimerState(message.state);
+  } catch(e) {}
+}
+
+function openPopoutWindow() {
+  easeCanvasDuringInteraction();
+  setThemePopover(false);
+  if(popoutWindow && !popoutWindow.closed) {
+    popoutWindow.focus();
+    broadcastTimerState();
+    return;
+  }
+
+  const url = new URL(window.location.href);
+  url.searchParams.set('popout', '1');
+  const width = 420;
+  const height = 560;
+  const left = Math.max(0, Math.round(window.screenX + window.outerWidth - width - 28));
+  const top = Math.max(0, Math.round(window.screenY + 72));
+  const features = [
+    'popup=yes',
+    `width=${width}`,
+    `height=${height}`,
+    `left=${left}`,
+    `top=${top}`,
+    'resizable=yes',
+    'scrollbars=no',
+  ].join(',');
+
+  broadcastTimerState();
+  popoutWindow = window.open(url.toString(), 'nimbusTimerPopout', features);
+  if(popoutWindow) {
+    popoutWindow.focus();
+    setTimeout(broadcastTimerState, 200);
+  } else {
+    alert('Allow popups for this page to open the detached timer.');
+  }
+}
+
+function popBackIn() {
+  easeCanvasDuringInteraction();
+  postSyncMessage({ type: 'focus-main' });
+  if(window.opener && !window.opener.closed) {
+    window.opener.focus();
+    window.close();
+    return;
+  }
+  const url = new URL(window.location.href);
+  url.searchParams.delete('popout');
+  window.location.href = url.toString();
+}
+
+function togglePopoutWindow() {
+  IS_POPOUT ? popBackIn() : openPopoutWindow();
+}
+
+function configurePopoutMode() {
+  const btn = document.getElementById('popoutToggle');
+  if(!IS_POPOUT) return;
+  document.body.classList.remove('sidebar-open');
+  document.body.classList.add('popout-mode');
+  document.title = 'Nimbus Timer';
+  btn.setAttribute('aria-label', 'Pop timer back in');
+  btn.title = 'Pop back in (P)';
+  applyLastStoredTimerState();
+  postSyncMessage({ type: 'request-state' });
+}
+
+if(syncChannel) {
+  syncChannel.addEventListener('message', e => handleSyncMessage(e.data));
+}
+window.addEventListener('storage', e => {
+  if(e.key !== SYNC_KEY || !e.newValue) return;
+  try {
+    handleSyncMessage(JSON.parse(e.newValue));
+  } catch(err) {}
+});
+window.addEventListener('message', e => {
+  const data = e.data;
+  if(!data || data.key !== SYNC_KEY || !data.payload) return;
+  handleSyncMessage(data.payload);
+});
+
+function fmt(s) {
+  return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+}
+
+function clampRemainingMs(ms) {
+  return Math.max(0, Math.min(total*1000, Math.round(Number(ms) || 0)));
+}
+
+function setRemainingMs(ms) {
+  remainingMs = clampRemainingMs(ms);
+  remain = remainingMs === 0 ? 0 : Math.ceil(remainingMs / 1000);
+}
+
+function syncRemainingFromClock() {
+  if(running && timerDeadline) setRemainingMs(timerDeadline - performance.now());
+}
+
+function fmtClockMs(ms) {
+  const clamped = clampRemainingMs(ms);
+  const wholeSeconds = Math.floor(clamped / 1000);
+  return fmt(wholeSeconds);
+}
+
+function updateTimeDisplay() {
+  document.getElementById('timeDisplay').textContent = fmtClockMs(remainingMs);
+}
+
+function getElapsedSeconds() {
+  return Math.max(0, Math.min(total, Math.floor((total*1000 - remainingMs) / 1000)));
+}
+
+function hasMeaningfulProgress() {
+  syncRemainingFromClock();
+  return !!sessionStartTime && getElapsedSeconds() > 2;
+}
+
+function fmtTime(date) {
+  return date.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+
+function fmtDuration(seconds) {
+  if(seconds < 60) return `${seconds}s`;
+  const m = Math.floor(seconds/60), s = seconds%60;
+  return s > 0 ? `${m}m ${s}s` : `${m}m`;
+}
+
+let audioCtx = null;
+
+function getAudioContext() {
+  const AudioCtor = window.AudioContext || window.webkitAudioContext;
+  if(!AudioCtor) return null;
+  if(!audioCtx) audioCtx = new AudioCtor();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playNote(ac, frequency, start, duration, type = 'sine', peak = .055) {
+  const o = ac.createOscillator();
+  const g = ac.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(frequency, start);
+  g.gain.setValueAtTime(.0001, start);
+  g.gain.exponentialRampToValueAtTime(peak, start + .025);
+  g.gain.setValueAtTime(peak, start + duration*.55);
+  g.gain.exponentialRampToValueAtTime(.0001, start + duration);
+  o.connect(g);
+  g.connect(ac.destination);
+  o.start(start);
+  o.stop(start + duration + .04);
+}
+
+function playSessionAlarm(sessionMode) {
+  try {
+    const ac = getAudioContext();
+    if(!ac) return;
+    const now = ac.currentTime + .02;
+    const isBreak = sessionMode === 'short' || sessionMode === 'long';
+
+    if(isBreak) {
+      playNote(ac, 740, now, .22, 'square', .055);
+      playNote(ac, 740, now + .32, .22, 'square', .055);
+      playNote(ac, 988, now + .68, .42, 'triangle', .075);
+      playNote(ac, 1244, now + .68, .42, 'sine', .04);
+      return;
+    }
+
+    playNote(ac, 523.25, now, .28, 'triangle', .064);
+    playNote(ac, 659.25, now + .24, .34, 'sine', .058);
+    playNote(ac, 783.99, now + .52, .48, 'triangle', .074);
+    playNote(ac, 1046.5, now + .9, .56, 'sine', .046);
+  } catch(e){}
+}
+
+function tone(type) {
+  try {
+    const ac = getAudioContext();
+    if(!ac) return;
+    if(type === 'tick') playNote(ac, 880, ac.currentTime + .01, .14, 'sine', .035);
+  } catch(e){}
+}
+
+function getCurrentName() {
+  return document.getElementById('currentSessionName').value.trim();
+}
+
+function updateUI() {
+  syncRemainingFromClock();
+  updateTimeDisplay();
+  updateGauge();
+  const labels = {work:'Focus session', short:'Short break', long:'Long break'};
+  document.getElementById('modeLabel').textContent = labels[mode];
+  const playBtn = document.getElementById('playBtn');
+  playBtn.textContent = running ? 'Pause' : (remainingMs < total*1000 ? 'Resume' : 'Begin');
+  playBtn.title = `${playBtn.textContent} (Space)`;
+  const ds = document.querySelectorAll('.dot');
+  ds.forEach((d,i) => d.classList.toggle('filled', i < sessions));
+  document.getElementById('sessCount').textContent = `${sessions} of ${sessionTarget} sessions`;
+
+  // Session name on canvas
+  const nm = getCurrentName();
+  const nd = document.getElementById('sessionNameDisplay');
+  if(nm && running) {
+    nd.textContent = nm;
+    nd.classList.add('visible');
+  } else {
+    nd.classList.remove('visible');
+  }
+
+  if(!IS_POPOUT && !applyingRemoteState) broadcastTimerState();
+}
+
+function commitSession(completed) {
+  if(!sessionStartTime) return;
+  syncRemainingFromClock();
+  const endTime = new Date();
+  const elapsed = completed ? total : getElapsedSeconds();
+  if(elapsed < 3) return;
+
+  const entry = {
+    id: Date.now(),
+    mode,
+    name: getCurrentName() || null,
+    startTime: sessionStartTime,
+    endTime,
+    planned: total,
+    elapsed,
+    completed,
+    stops: [...sessionStops],
+  };
+
+  sessionLog.unshift(entry);
+  if(mode === 'work') {
+    currentStreak = completed ? currentStreak + 1 : Math.max(0, currentStreak);
+    sessions = Math.min(sessions + 1, sessionTarget);
+  }
+
+  sessionStartTime = null;
+  sessionStops = [];
+  document.getElementById('currentSessionName').value = '';
+  renderLog();
+  updateMetrics();
+  updateUI();
+  saveState();
+}
+
+function stopTimer(userPause) {
+  syncRemainingFromClock();
+  if(running && userPause && sessionStartTime) {
+    sessionStops.push({
+      at: new Date(),
+      elapsed: getElapsedSeconds(),
+      remaining: remain,
+    });
+  }
+  clearInterval(tid); tid=null; timerDeadline=0; running=false; updateUI();
+}
+
+function startTimer() {
+  if(running) return;
+  if(!sessionStartTime) { sessionStartTime = new Date(); sessionStops = []; }
+  running = true;
+  timerDeadline = performance.now() + remainingMs;
+  startTimer.lastRemain = remain;
+  document.getElementById('doneMsg').classList.remove('visible');
+  tone('tick');
+  tid = setInterval(()=>{
+    syncRemainingFromClock();
+    updateTimeDisplay();
+    updateGauge();
+    if(remainingMs <= 0){
+      const completedMode = mode;
+      setRemainingMs(0);
+      updateUI();
+      stopTimer(false);
+      commitSession(true);
+      dissolve = 1;
+      playSessionAlarm(completedMode);
+      document.getElementById('doneMsg').classList.add('visible');
+      broadcastTimerState();
+      return;
+    }
+    if(remain !== startTimer.lastRemain) {
+      startTimer.lastRemain = remain;
+      broadcastTimerState();
+    }
+  }, 33);
+  updateUI();
+}
+
+function setMode(m, mins) {
+  if(IS_POPOUT) {
+    sendMainCommand('set-mode', { mode: m, minutes: mins });
+    return;
+  }
+  if(running || hasMeaningfulProgress()) {
+    commitSession(false);
+  }
+  stopTimer(false);
+  mode = m; total = mins*60; setRemainingMs(total*1000);
+  sessionStartTime = null; sessionStops = [];
+  document.getElementById('doneMsg').classList.remove('visible');
+  document.getElementById('currentSessionName').value = '';
+  dissolve = 0;
+  document.querySelectorAll('.pill').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));
+  updateUI();
+}
+
+// ── METRICS ──
+function updateMetrics() {
+  const focusSessions = sessionLog.filter(e=>e.mode==='work');
+  const focusSecs = focusSessions.reduce((a,e)=>a+e.elapsed, 0);
+  const focusMins = Math.round(focusSecs/60);
+
+  document.getElementById('metricTotal').textContent = sessionLog.length;
+  document.getElementById('metricFocus').textContent = focusMins >= 60
+    ? `${Math.floor(focusMins/60)}h${focusMins%60 ? focusMins%60+'m' : ''}`
+    : `${focusMins}m`;
+  document.getElementById('metricStreak').textContent = currentStreak;
+  document.getElementById('historyCount').textContent = sessionLog.length;
+  document.getElementById('exportBtn').disabled = sessionLog.length === 0;
+  document.getElementById('clearLogBtn').disabled = sessionLog.length === 0;
+
+  const pips = document.querySelectorAll('.streak-pip');
+  pips.forEach((p,i) => p.classList.toggle('lit', i < currentStreak % 8));
+
+  document.getElementById('logToggle').classList.toggle('has-data', sessionLog.length > 0);
+  document.getElementById('sidebarDate').textContent = new Date().toLocaleDateString([], {weekday:'long', month:'long', day:'numeric'});
+}
+
+// ── LOG RENDERING ──
+function renderLog() {
+  const section = document.getElementById('logSection');
+  const empty = document.getElementById('logEmpty');
+
+  if(sessionLog.length === 0) {
+    empty.style.display = '';
+    while(section.children.length > 1) section.removeChild(section.lastChild);
+    return;
+  }
+  empty.style.display = 'none';
+
+  while(section.children.length > 1) section.removeChild(section.lastChild);
+
+  sessionLog.forEach((entry, idx) => {
+    const div = document.createElement('div');
+    div.className = `log-entry ${entry.completed ? 'completed' : 'incomplete'}`;
+
+    const modeNames = {work:'Focus', short:'Short break', long:'Long break'};
+    const displayName = entry.name || (modeNames[entry.mode] + ' #' + (sessionLog.length - idx));
+    const completedTag = entry.completed ? '' : ' · incomplete';
+    const statusText = entry.completed ? 'Done' : 'Saved';
+
+    div.innerHTML = `
+      <div class="log-entry-header">
+        <div class="log-entry-name" data-idx="${idx}">${esc(displayName)}</div>
+        <span class="log-mode-badge ${entry.mode}">${modeNames[entry.mode]}</span>
+        <span class="log-status">${statusText}</span>
+        <button class="log-edit-btn" data-idx="${idx}" title="Rename">✎</button>
+      </div>
+      <div class="log-entry-meta">
+        <span class="log-meta-item">${fmtTime(new Date(entry.startTime))} – ${fmtTime(new Date(entry.endTime))}</span>
+        <span class="log-meta-sep">·</span>
+        <span class="log-meta-item">${fmtDuration(entry.elapsed)}${completedTag}</span>
+      </div>
+      ${entry.stops.length > 0 ? `<div class="log-stops">${entry.stops.map((s,si) =>
+        `<div class="log-stop-item">Paused at ${fmtTime(new Date(s.at))} — ${fmtDuration(s.elapsed)} elapsed</div>`
+      ).join('')}</div>` : ''}
+    `;
+
+    div.querySelector('.log-edit-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      startInlineEdit(div, idx);
+    });
+
+    section.appendChild(div);
+  });
+}
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function startInlineEdit(div, idx) {
+  const nameEl = div.querySelector('.log-entry-name');
+  const current = sessionLog[idx].name || '';
+  const input = document.createElement('input');
+  input.className = 'log-entry-name-input';
+  input.value = current;
+  input.placeholder = 'Session name…';
+  input.maxLength = 48;
+  nameEl.replaceWith(input);
+  input.focus(); input.select();
+
+  function save() {
+    const val = input.value.trim();
+    sessionLog[idx].name = val || null;
+    saveState();
+    renderLog();
+  }
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', e => {
+    if(e.key==='Enter') { e.preventDefault(); input.blur(); }
+    if(e.key==='Escape') { input.value = current; input.blur(); }
+  });
+}
+
+// ── EVENT LISTENERS ──
+document.getElementById('playBtn').addEventListener('click', togglePlay);
+
+document.getElementById('resetBtn').addEventListener('click', resetCurrentTimer);
+
+document.getElementById('stopBtn').addEventListener('click', clearCurrentCycle);
+
+document.getElementById('popoutToggle').addEventListener('click', togglePopoutWindow);
+
+document.querySelectorAll('.pill').forEach(b => {
+  b.addEventListener('click', () => setMode(b.dataset.mode, +b.dataset.minutes));
+});
+
+document.getElementById('themeToggle').addEventListener('click', toggleThemePicker);
+
+document.querySelectorAll('.theme-swatch').forEach(b => {
+  b.addEventListener('click', () => {
+    setTheme(b.dataset.theme);
+    setThemePopover(false);
+  });
+});
+
+document.addEventListener('click', e => {
+  const picker = document.getElementById('themePicker');
+  if(!picker.contains(e.target)) setThemePopover(false);
+});
+
+document.addEventListener('keydown', e => {
+  if(hotkeysShouldIgnore(e)) return;
+
+  const key = e.key.toLowerCase();
+  const modeHotkeys = {
+    '1': ['work', 25],
+    '2': ['short', 5],
+    '3': ['long', 15],
+  };
+
+  if(IS_POPOUT) {
+    if(modeHotkeys[key]) {
+      e.preventDefault();
+      setMode(modeHotkeys[key][0], modeHotkeys[key][1]);
+      return;
+    }
+    if(key === ' ' || e.code === 'Space') {
+      if(e.target.closest && e.target.closest('button')) return;
+      e.preventDefault();
+      togglePlay();
+      return;
+    }
+    const popoutActions = {
+      p: togglePopoutWindow,
+      r: resetCurrentTimer,
+      c: clearCurrentCycle,
+    };
+    if(popoutActions[key]) {
+      e.preventDefault();
+      popoutActions[key]();
+    }
+    return;
+  }
+
+  if(key === 'escape') {
+    if(document.getElementById('themePicker').classList.contains('open')) {
+      e.preventDefault();
+      setThemePopover(false);
+      return;
+    }
+    if(document.body.classList.contains('sidebar-open')) {
+      e.preventDefault();
+      toggleSessionLog();
+    }
+    return;
+  }
+
+  if(modeHotkeys[key]) {
+    e.preventDefault();
+    setMode(modeHotkeys[key][0], modeHotkeys[key][1]);
+    return;
+  }
+
+  if(key === ' ' || e.code === 'Space') {
+    if(e.target.closest && e.target.closest('button')) return;
+    e.preventDefault();
+    togglePlay();
+    return;
+  }
+
+  const actions = {
+    f: toggleFullscreen,
+    l: toggleSessionLog,
+    p: togglePopoutWindow,
+    t: toggleThemePicker,
+    r: resetCurrentTimer,
+    c: clearCurrentCycle,
+  };
+
+  if(actions[key]) {
+    e.preventDefault();
+    actions[key]();
+  }
+});
+
+document.getElementById('fullscreenToggle').addEventListener('click', toggleFullscreen);
+
+document.addEventListener('fullscreenchange', updateFullscreenButton);
+
+document.getElementById('logToggle').addEventListener('click', toggleSessionLog);
+
+document.getElementById('currentSessionName').addEventListener('input', updateUI);
+
+document.getElementById('clearLogBtn').addEventListener('click', () => {
+  if(confirm('Clear all session history?')) {
+    sessionLog = []; currentStreak = 0; sessions = 0;
+    saveState();
+    renderLog(); updateMetrics(); updateUI();
+  }
+});
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  if(!sessionLog.length) return;
+  const rows = [['Name','Mode','Start','End','Elapsed (s)','Completed','Pauses']];
+  sessionLog.forEach(e => {
+    rows.push([
+      e.name || '',
+      e.mode,
+      new Date(e.startTime).toISOString(),
+      new Date(e.endTime).toISOString(),
+      e.elapsed,
+      e.completed ? 'yes' : 'no',
+      e.stops.length,
+    ]);
+  });
+  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv,' + encodeURIComponent(csv);
+  a.download = 'nimbus-sessions.csv';
+  a.click();
+});
+
+// ── CLOUD CANVAS ──
+let W, H;
+let lastCanvasFrame = 0;
+let easeCanvasUntil = 0;
+const CANVAS_FRAME_MS = IS_POPOUT ? 1000 / 20 : 1000 / 24;
+
+function easeCanvasDuringInteraction() {
+  easeCanvasUntil = performance.now() + 460;
+}
+function resize() {
+  easeCanvasDuringInteraction();
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+const t0 = performance.now();
+
+const cloudDecks = Array.from({length:4}, (_, layer) => ({
+  y: .31 + layer*.145 + Math.random()*.035,
+  scale: .44 + layer*.12,
+  drift: .0000012 + layer*.0000009,
+  counter: layer % 2 === 0 ? 1 : -1,
+  phase: Math.random()*Math.PI*2,
+  alpha: .16 + layer*.04,
+  puffs: Array.from({length:18}, (_, i) => ({
+    x: i / 17 + (Math.random()-.5)*.08,
+    y: (Math.random()-.5)*.16,
+    rx: .055 + Math.random()*.12,
+    ry: .03 + Math.random()*.055,
+    lean: (Math.random()-.5)*.35,
+    phase: Math.random()*Math.PI*2,
+    lift: (Math.random()-.5)*.024,
+    shade: .72 + Math.random()*.5,
+  })),
+}));
+
+const vaporWisps = Array.from({length:10}, (_, i) => ({
+  x: Math.random(),
+  y: .16 + Math.random()*.68,
+  length: .18 + Math.random()*.26,
+  amp: .008 + Math.random()*.018,
+  drift: .000003 + Math.random()*.000005,
+  phase: Math.random()*Math.PI*2,
+  alpha: .045 + Math.random()*.07,
+  width: .55 + Math.random()*1.15,
+  depth: i / 9,
+}));
+
+const highMist = Array.from({length:6}, () => ({
+  x: Math.random(),
+  y: .08 + Math.random()*.42,
+  rx: .24 + Math.random()*.32,
+  ry: .08 + Math.random()*.14,
+  drift: .0000018 + Math.random()*.0000035,
+  phase: Math.random()*Math.PI*2,
+  alpha: .045 + Math.random()*.055,
+}));
+
+const stars = Array.from({length:42}, () => ({
+  x: Math.random(), y: Math.random(),
+  r: .5 + Math.random()*1.2,
+  op: .04 + Math.random()*.14,
+  tw: .00012+Math.random()*.00016,
+  phase: Math.random()*Math.PI*2,
+}));
+
+function hexToRgb(hex) {
+  return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
+}
+function lerpColor(c1,c2,t) {
+  return c1.map((v,i)=>Math.round(v+(c2[i]-v)*t));
+}
+
+function drawCloudEllipse(cx, cy, rx, ry, stops, rotate = 0) {
+  if(rx <= 1 || ry <= 1) return;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rotate);
+  ctx.scale(rx, ry);
+  const grad = ctx.createRadialGradient(-.16, -.18, 0, 0, 0, 1);
+  stops.forEach(([stop, color]) => grad.addColorStop(stop, color));
+  ctx.beginPath();
+  ctx.arc(0, 0, 1, 0, Math.PI*2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.restore();
+}
+
+function draw(ts) {
+  requestAnimationFrame(draw);
+  const targetFrameMs = ts < easeCanvasUntil ? 1000 / 12 : CANVAS_FRAME_MS;
+  if(lastCanvasFrame && ts - lastCanvasFrame < targetFrameMs) return;
+  lastCanvasFrame = ts;
+
+  const t = ts - t0;
+  const progress = remainingMs / (total*1000);
+  const vitality = running ? 1 : 0.55;
+  const cd = dissolve;
+  const lowDetail = ts < easeCanvasUntil || W * H > 1600000;
+
+  const drawW = Math.max(1, W);
+
+  ctx.clearRect(0,0,W,H);
+
+  const pa = palRgb.a, pb = palRgb.b, pc = palRgb.c, pd = palRgb.d, pe = palRgb.e;
+
+  const bgGrad = ctx.createRadialGradient(drawW*.5,H*.3,0,drawW*.5,H*.5,Math.max(drawW,H)*.8);
+  bgGrad.addColorStop(0, `rgb(${pb})`);
+  bgGrad.addColorStop(.6, `rgb(${pa})`);
+  bgGrad.addColorStop(1, `rgb(${pa})`);
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0,0,W,H);
+
+  stars.forEach(s => {
+    const tw = Math.sin(t*s.tw+s.phase)*.5+.5;
+    const op = s.op * tw * (1 - cd*.4);
+    ctx.beginPath();
+    ctx.arc(s.x*drawW, s.y*H, s.r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${op})`;
+    ctx.fill();
+  });
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  highMist.forEach((mist, i) => {
+    if(lowDetail && i % 2) return;
+    const drift = t*mist.drift + Math.sin(t*.000012 + mist.phase)*.018;
+    const cx = ((mist.x + drift + 1.25) % 1.5 - .25) * drawW;
+    const cy = (mist.y + Math.sin(t*.00001 + mist.phase)*.018) * H;
+    const life = (1 - cd*.8) * (.78 + progress*.22);
+    const alpha = mist.alpha * life * (.8 + vitality*.2);
+    const rgb = lerpColor(pd, pe, .35 + i*.04);
+    drawCloudEllipse(cx, cy, mist.rx*drawW, mist.ry*H, [
+      [0, `rgba(${pe.join(',')},${alpha*.42})`],
+      [.48, `rgba(${rgb.join(',')},${alpha*.24})`],
+      [1, `rgba(${pc.join(',')},0)`],
+    ], Math.sin(mist.phase)*.1);
+  });
+
+  vaporWisps.forEach((wisp, i) => {
+    if(lowDetail && i % 2) return;
+    const drift = t*wisp.drift;
+    const cx = ((wisp.x + drift + 1.2) % 1.4 - .2) * drawW;
+    const cy = (wisp.y + Math.sin(t*.00002 + wisp.phase)*.022) * H;
+    const length = wisp.length * drawW;
+    const amp = wisp.amp * H * (.74 + vitality*.26);
+    const alpha = wisp.alpha * (1 - cd*.86) * (.78 + progress*.22);
+    if(alpha <= .005) return;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.bezierCurveTo(
+      cx + length*.28,
+      cy - amp*Math.sin(t*.000028 + wisp.phase),
+      cx + length*.58,
+      cy + amp*Math.cos(t*.000024 + wisp.phase),
+      cx + length,
+      cy + amp*.3*Math.sin(t*.00002 + wisp.phase)
+    );
+    ctx.strokeStyle = `rgba(${pe.join(',')},${alpha})`;
+    ctx.lineWidth = wisp.width * (1 + wisp.depth*.75);
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  });
+  ctx.restore();
+
+  cloudDecks.forEach((deck, layer) => {
+    const depth = (layer + 1) / cloudDecks.length;
+    const life = (.62 + progress*.38) * (1 - cd*.74);
+    if(life <= .01) return;
+    const drift = t*deck.drift*deck.counter + Math.sin(t*.000012 + deck.phase)*.018;
+    const deckY = deck.y + Math.sin(t*.000008 + deck.phase)*.012;
+    const baseAlpha = deck.alpha * life * (.82 + vitality*.18);
+    const midRgb = lerpColor(pc, pd, .22 + depth*.52);
+    const lightRgb = lerpColor(pd, pe, .4 + depth*.2);
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.filter = 'none';
+
+    const hazeTop = (deckY - .1*deck.scale) * H;
+    const hazeHeight = (.22 + deck.scale*.08) * H;
+    const baseGrad = ctx.createLinearGradient(0, hazeTop, 0, hazeTop + hazeHeight);
+    baseGrad.addColorStop(0, `rgba(${pe.join(',')},${baseAlpha*.04})`);
+    baseGrad.addColorStop(.46, `rgba(${midRgb.join(',')},${baseAlpha*.15})`);
+    baseGrad.addColorStop(1, `rgba(${pc.join(',')},0)`);
+    ctx.fillStyle = baseGrad;
+    ctx.fillRect(0, hazeTop, drawW, hazeHeight);
+
+    deck.puffs.forEach((p, i) => {
+      if(lowDetail && i % 2) return;
+      const cx = ((p.x + drift + 1.24) % 1.48 - .24) * drawW;
+      const cy = (deckY + p.y + Math.sin(t*.000038 + p.phase)*p.lift*vitality) * H;
+      const swell = 1 + Math.sin(t*.000034 + p.phase)*.035*vitality;
+      const rx = p.rx * drawW * deck.scale * swell;
+      const ry = p.ry * H * deck.scale * (1 + Math.cos(t*.000031 + p.phase)*.04*vitality);
+      const shade = Math.min(1.22, p.shade);
+      const alpha = baseAlpha * (.72 + (i%6)*.035);
+
+      drawCloudEllipse(cx + rx*.03, cy + ry*.2, rx*1.12, ry*.76, [
+        [0, `rgba(${pc.join(',')},${alpha*.22*shade})`],
+        [.55, `rgba(${midRgb.join(',')},${alpha*.15})`],
+        [1, `rgba(${pc.join(',')},0)`],
+      ], p.lean*.28);
+
+      drawCloudEllipse(cx, cy, rx, ry, [
+        [0, `rgba(${pe.join(',')},${alpha*.48*shade})`],
+        [.44, `rgba(${lightRgb.join(',')},${alpha*.3})`],
+        [.78, `rgba(${midRgb.join(',')},${alpha*.17})`],
+        [1, `rgba(${pc.join(',')},0)`],
+      ], p.lean);
+
+      if(!lowDetail && i % 4 === 1) {
+        drawCloudEllipse(cx - rx*.18, cy - ry*.26, rx*.42, ry*.28, [
+          [0, `rgba(255,255,255,${alpha*.25})`],
+          [.58, `rgba(${pe.join(',')},${alpha*.13})`],
+          [1, `rgba(${pe.join(',')},0)`],
+        ], p.lean*.6);
+      }
+    });
+    ctx.restore();
+  });
+
+  const coreLife = progress * vitality * (1-cd);
+  if(coreLife > 0) {
+    const pulse = 1 + Math.sin(t*.00032)*.035;
+    const coreR = Math.min(drawW,H) * .22 * coreLife * pulse;
+    const coreGrad = ctx.createRadialGradient(drawW*.5, H*.46, 0, drawW*.5, H*.46, coreR);
+    coreGrad.addColorStop(0, `rgba(${pe.join(',')},${.16*coreLife})`);
+    coreGrad.addColorStop(.5, `rgba(${pd.join(',')},${.09*coreLife})`);
+    coreGrad.addColorStop(1, `rgba(${pc.join(',')},0)`);
+    ctx.beginPath();
+    ctx.arc(drawW*.5, H*.46, coreR, 0, Math.PI*2);
+    ctx.fillStyle = coreGrad;
+    ctx.fill();
+  }
+
+  const veilGrad = ctx.createLinearGradient(0, H*.5, 0, H);
+  veilGrad.addColorStop(0, 'transparent');
+  veilGrad.addColorStop(1, `rgba(${pa},.55)`);
+  ctx.fillStyle = veilGrad;
+  ctx.fillRect(0, H*.5, W, H*.5);
+
+  if(cd > 0) {
+    stars.forEach((s,i) => {
+      const rise = (t * .00004 * (i%3+1)) % 1;
+      const wx = s.x*drawW + Math.sin(t*.0005+s.phase)*30*cd;
+      const wy = s.y*H - rise * H * .4 * cd;
+      const op = s.op * cd * (1-rise);
+      if(op<.01) return;
+      ctx.beginPath();
+      ctx.arc(wx, wy, s.r*1.8*cd, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(${pe.join(',')},${op})`;
+      ctx.fill();
+    });
+  }
+}
+
+configurePopoutMode();
+requestAnimationFrame(draw);
+buildGauge();
+loadState();
+setTheme(currentTheme, false);
+renderLog();
+updateMetrics();
+updateFullscreenButton();
+updateUI();
+</script>
+</body>
+</html>
