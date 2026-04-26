@@ -1,4 +1,5 @@
 const { app, BrowserWindow, Menu, ipcMain, nativeImage, screen, shell } = require('electron');
+const { spawnSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
@@ -11,7 +12,11 @@ const updateFeedUrl = 'https://github.com/murderszn/nimbus/releases/latest/downl
 const updateReleaseUrl = 'https://github.com/murderszn/nimbus/releases/latest';
 let checkedUpdatesThisLaunch = false;
 let pendingStartupUpdateCheck = null;
+let installUpdateScheduled = false;
 const popoutWindowStates = new WeakMap();
+let updaterPreferences = {
+  autoRestartAfterUpdate: true
+};
 let updateStatus = {
   state: 'idle',
   message: 'Ready to check for updates.',
@@ -20,6 +25,7 @@ let updateStatus = {
   canInstall: false,
   lastCheckedAt: null
 };
+let cachedUpdateSupport = null;
 
 function appHtmlPath() {
   return path.join(app.getAppPath(), 'pomodoro-cloud-v2.html');
@@ -39,10 +45,101 @@ function appIcon() {
   return image.isEmpty() ? undefined : image;
 }
 
+function macAppBundlePath() {
+  if (!isMac) return null;
+
+  const marker = `${path.sep}Contents${path.sep}MacOS${path.sep}`;
+  const markerIndex = process.execPath.indexOf(marker);
+  if (markerIndex === -1) return null;
+  return process.execPath.slice(0, markerIndex);
+}
+
+function runCodesign(args) {
+  const result = spawnSync('/usr/bin/codesign', args, { encoding: 'utf8' });
+  return {
+    ok: result.status === 0,
+    output: `${result.stdout || ''}${result.stderr || ''}`.trim()
+  };
+}
+
+function macCodeSignatureStatus() {
+  const appPath = macAppBundlePath();
+  if (!appPath) {
+    return {
+      supported: false,
+      reason: 'Nimbus could not locate the installed macOS app bundle for updater validation.',
+      manualDownloadUrl: macManualDownloadUrl()
+    };
+  }
+
+  const details = runCodesign(['-dv', '--verbose=4', appPath]);
+  const verification = runCodesign(['--verify', '--deep', '--strict', '--verbose=2', appPath]);
+  const output = `${details.output || ''}\n${verification.output || ''}`;
+  const signatureMatch = output.match(/Signature=(.+)/);
+  const teamMatch = output.match(/TeamIdentifier=(.+)/);
+  const signature = signatureMatch ? signatureMatch[1].trim() : null;
+  const teamIdentifier = teamMatch ? teamMatch[1].trim() : null;
+  const isAdHoc = signature === 'adhoc' || /flags=.*adhoc/.test(output);
+  const hasStableIdentity = !!teamIdentifier && teamIdentifier !== 'not set' && !isAdHoc;
+
+  if (!verification.ok) {
+    return {
+      supported: false,
+      reason: 'This macOS build is not signed in a way that supports automatic updates.',
+      detail: verification.output || details.output || null,
+      manualDownloadUrl: macManualDownloadUrl()
+    };
+  }
+
+  if (!hasStableIdentity) {
+    return {
+      supported: false,
+      reason: 'Automatic macOS updates require a Developer ID signed Nimbus build.',
+      detail: 'The installed app has no stable Apple Team Identifier.',
+      manualDownloadUrl: macManualDownloadUrl()
+    };
+  }
+
+  return {
+    supported: true,
+    reason: 'Automatic updates are available for this signed macOS build.',
+    detail: null,
+    manualDownloadUrl: null
+  };
+}
+
+function updateSupport() {
+  if (isDev || !app.isPackaged) {
+    return {
+      supported: false,
+      reason: 'Update checks are available in packaged builds installed from GitHub releases.',
+      manualDownloadUrl: null
+    };
+  }
+
+  if (isMac) {
+    cachedUpdateSupport = cachedUpdateSupport || macCodeSignatureStatus();
+    return cachedUpdateSupport;
+  }
+
+  return {
+    supported: true,
+    reason: 'Automatic updates are available for this packaged build.',
+    manualDownloadUrl: null
+  };
+}
+
+function macManualDownloadUrl() {
+  return updateReleaseUrl;
+}
+
 function publicUpdateStatus() {
+  const support = updateSupport();
   return {
     ...updateStatus,
-    supported: app.isPackaged && !isDev,
+    supported: support.supported,
+    supportMessage: support.reason,
+    manualDownloadUrl: support.manualDownloadUrl,
     isPackaged: app.isPackaged,
     currentVersion: app.getVersion(),
     feedUrl: updateFeedUrl,
@@ -67,7 +164,11 @@ function sendUpdateStatus(nextStatus) {
 
 function normalizeUpdateError(error) {
   if (!error) return 'Update check failed.';
-  return error.message || String(error);
+  const message = error.message || String(error);
+  if (isMac && /code signature|signature.*validation|code has no resources/i.test(message)) {
+    return 'This macOS build is not signed for automatic updates. Download the latest Nimbus DMG from GitHub and install it manually.';
+  }
+  return message;
 }
 
 function configureAutoUpdater() {
@@ -77,6 +178,7 @@ function configureAutoUpdater() {
   });
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.autoRunAppAfterInstall = true;
   autoUpdater.allowPrerelease = false;
   autoUpdater.allowDowngrade = false;
   autoUpdater.fullChangelog = true;
@@ -127,16 +229,23 @@ function configureAutoUpdater() {
   autoUpdater.on('update-downloaded', info => {
     sendUpdateStatus({
       state: 'downloaded',
-      message: `Version ${info.version} is ready. Restart Nimbus to install it.`,
+      message: updaterPreferences.autoRestartAfterUpdate
+        ? `Version ${info.version} is ready. Restarting Nimbus to install it...`
+        : `Version ${info.version} is ready. Restart Nimbus to install it.`,
       version: info.version,
       releaseDate: info.releaseDate || null,
       releaseNotes: info.releaseNotes || null,
       percent: 100,
       canInstall: true
     });
+
+    if (updaterPreferences.autoRestartAfterUpdate) {
+      scheduleUpdateInstall();
+    }
   });
 
   autoUpdater.on('error', error => {
+    installUpdateScheduled = false;
     sendUpdateStatus({
       state: 'error',
       message: normalizeUpdateError(error),
@@ -147,12 +256,14 @@ function configureAutoUpdater() {
 }
 
 async function checkForUpdates({ userInitiated = false } = {}) {
-  if (isDev || !app.isPackaged) {
+  const support = updateSupport();
+  if (!support.supported) {
     return sendUpdateStatus({
       state: 'unavailable',
-      message: 'Update checks are available in packaged builds installed from GitHub releases.',
+      message: support.reason,
       percent: 0,
-      canInstall: false
+      canInstall: false,
+      manualDownloadUrl: support.manualDownloadUrl
     });
   }
 
@@ -173,6 +284,40 @@ async function checkForUpdates({ userInitiated = false } = {}) {
   }
 }
 
+function scheduleUpdateInstall() {
+  if (!updateStatus.canInstall || installUpdateScheduled) {
+    return publicUpdateStatus();
+  }
+
+  installUpdateScheduled = true;
+  sendUpdateStatus({
+    state: 'installing',
+    message: 'Installing update and restarting Nimbus...',
+    percent: 100,
+    canInstall: false
+  });
+
+  setTimeout(() => {
+    try {
+      if (isMac) {
+        autoUpdater.quitAndInstall();
+      } else {
+        autoUpdater.quitAndInstall(true, true);
+      }
+    } catch (error) {
+      installUpdateScheduled = false;
+      sendUpdateStatus({
+        state: 'error',
+        message: normalizeUpdateError(error),
+        percent: 0,
+        canInstall: false
+      });
+    }
+  }, 1000);
+
+  return publicUpdateStatus();
+}
+
 function registerIpcHandlers() {
   ipcMain.handle('nimbus:get-app-info', () => ({
     name: app.getName(),
@@ -188,6 +333,11 @@ function registerIpcHandlers() {
   ipcMain.handle('nimbus:get-update-status', () => publicUpdateStatus());
 
   ipcMain.handle('nimbus:set-preferences', (_event, preferences = {}) => {
+    updaterPreferences = {
+      ...updaterPreferences,
+      autoRestartAfterUpdate: preferences.autoRestartAfterUpdate !== false
+    };
+
     if (pendingStartupUpdateCheck) {
       clearTimeout(pendingStartupUpdateCheck);
       pendingStartupUpdateCheck = null;
@@ -211,8 +361,7 @@ function registerIpcHandlers() {
     if (!updateStatus.canInstall) {
       return publicUpdateStatus();
     }
-    autoUpdater.quitAndInstall(false, true);
-    return publicUpdateStatus();
+    return scheduleUpdateInstall();
   });
 
   ipcMain.handle('nimbus:enter-popout-mode', event => (

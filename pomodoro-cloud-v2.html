@@ -1680,7 +1680,7 @@
   <div class="app-chrome-title">
     <span class="app-chrome-mark" aria-hidden="true"></span>
     <span id="appChromeTitle">Nimbus</span>
-    <span class="app-chrome-version" id="appChromeVersion">1.2.9</span>
+    <span class="app-chrome-version" id="appChromeVersion">1.2.10</span>
   </div>
   <div class="app-chrome-status" id="appChromeStatus">Focus session</div>
 </header>
@@ -1840,7 +1840,7 @@
 <aside class="settings-panel" id="settingsPanel" aria-hidden="true">
   <div class="settings-header">
     <div class="settings-title">Settings</div>
-    <div class="settings-subtitle" id="settingsVersion">Version 1.2.9</div>
+    <div class="settings-subtitle" id="settingsVersion">Version 1.2.10</div>
     <button class="panel-close" id="settingsCloseBtn" type="button" aria-label="Close settings">&times;</button>
   </div>
 
@@ -1854,6 +1854,17 @@
         </span>
         <span class="settings-switch">
           <input type="checkbox" id="autoUpdateOnStart" />
+          <span class="settings-switch-track" aria-hidden="true"></span>
+        </span>
+      </label>
+
+      <label class="settings-row" for="autoRestartAfterUpdate">
+        <span class="settings-row-main">
+          <span class="settings-row-title">Restart after download</span>
+          <span class="settings-row-copy">Install supported desktop updates as soon as they finish downloading.</span>
+        </span>
+        <span class="settings-switch">
+          <input type="checkbox" id="autoRestartAfterUpdate" />
           <span class="settings-switch-track" aria-hidden="true"></span>
         </span>
       </label>
@@ -1912,9 +1923,18 @@ const RELEASE_DOWNLOAD_BASE = 'https://github.com/murderszn/nimbus/releases/late
 const syncChannel = 'BroadcastChannel' in window ? new BroadcastChannel(SYNC_KEY) : null;
 const DEFAULT_PREFERENCES = {
   autoUpdateOnStart: true,
+  autoRestartAfterUpdate: true,
   adaptiveCanvasResize: true,
 };
 const VERSION_HISTORY = [
+  {
+    version: '1.2.10',
+    date: '2026-04-26',
+    changes: [
+      'Automatic updates now restart supported desktop builds after download.',
+      'Unsigned macOS builds now show a manual install path instead of triggering a signature validation error.'
+    ]
+  },
   {
     version: '1.2.9',
     date: '2026-04-26',
@@ -2347,17 +2367,23 @@ function applyUpdateStatus(status = {}) {
   const checkBtn = document.getElementById('checkUpdatesBtn');
   const installBtn = document.getElementById('installUpdateBtn');
 
-  const isBusy = updateState.state === 'checking' || updateState.state === 'downloading';
+  const isBusy = updateState.state === 'checking' || updateState.state === 'downloading' || updateState.state === 'installing';
   if(title) title.textContent = updateState.message || 'Ready to check for updates.';
   if(detail) {
     if(!IS_DESKTOP) {
       detail.textContent = 'Update checks are available in the macOS and Windows desktop app.';
     } else if(updateState.state === 'downloading' && Number.isFinite(Number(updateState.percent))) {
       detail.textContent = `Downloading ${Math.round(updateState.percent)}%.`;
+    } else if(updateState.state === 'installing') {
+      detail.textContent = 'Nimbus will close and reopen when the installer is ready.';
     } else if(updateState.state === 'unavailable') {
-      detail.textContent = 'This build is not packaged from a GitHub release, so updater checks are disabled.';
+      detail.textContent = updateState.manualDownloadUrl
+        ? 'Download the latest DMG from GitHub to update this macOS build manually.'
+        : 'This build is not packaged from a GitHub release, so updater checks are disabled.';
     } else if(updateState.error) {
       detail.textContent = updateState.error;
+    } else if(updateState.supported === false && updateState.supportMessage) {
+      detail.textContent = updateState.supportMessage;
     } else if(updateState.version) {
       detail.textContent = `Latest detected version: ${updateState.version}.`;
     } else {
@@ -2365,12 +2391,14 @@ function applyUpdateStatus(status = {}) {
     }
   }
   if(checkBtn) {
+    const hasManualDownload = IS_DESKTOP && updateState.supported === false && updateState.manualDownloadUrl;
     checkBtn.disabled = !IS_DESKTOP || isBusy;
-    checkBtn.textContent = isBusy ? 'Checking' : 'Check now';
+    checkBtn.textContent = isBusy ? 'Checking' : (hasManualDownload ? 'Download DMG' : 'Check now');
   }
   if(installBtn) {
     installBtn.hidden = !updateState.canInstall;
     installBtn.disabled = !updateState.canInstall;
+    installBtn.textContent = updateState.state === 'installing' ? 'Installing' : 'Restart';
   }
 
   const releaseNotes = normalizeReleaseNotes(updateState.releaseNotes);
@@ -2385,8 +2413,10 @@ function applyUpdateStatus(status = {}) {
 
 function applyPreferenceControls() {
   const autoUpdate = document.getElementById('autoUpdateOnStart');
+  const autoRestart = document.getElementById('autoRestartAfterUpdate');
   const adaptiveResize = document.getElementById('adaptiveCanvasResize');
   if(autoUpdate) autoUpdate.checked = !!preferences.autoUpdateOnStart;
+  if(autoRestart) autoRestart.checked = !!preferences.autoRestartAfterUpdate;
   if(adaptiveResize) adaptiveResize.checked = !!preferences.adaptiveCanvasResize;
 }
 
@@ -2449,6 +2479,10 @@ async function initializeDesktopIntegration() {
 
 async function checkUpdatesNow() {
   if(!IS_DESKTOP || !desktopBridge.checkForUpdates) return;
+  if(updateState.supported === false && updateState.manualDownloadUrl) {
+    window.open(updateState.manualDownloadUrl, '_blank', 'noopener');
+    return;
+  }
   applyUpdateStatus({ state: 'checking', message: 'Checking for updates...', canInstall: false });
   try {
     const status = await desktopBridge.checkForUpdates({ userInitiated: true });
@@ -3693,6 +3727,10 @@ document.getElementById('settingsCloseBtn').addEventListener('click', () => {
 
 document.getElementById('autoUpdateOnStart').addEventListener('change', e => {
   updatePreference('autoUpdateOnStart', e.target.checked);
+});
+
+document.getElementById('autoRestartAfterUpdate').addEventListener('change', e => {
+  updatePreference('autoRestartAfterUpdate', e.target.checked);
 });
 
 document.getElementById('adaptiveCanvasResize').addEventListener('change', e => {

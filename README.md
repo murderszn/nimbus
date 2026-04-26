@@ -132,6 +132,7 @@ Generated build outputs are intentionally not committed. `dist/` and `node_modul
 The generated desktop apps are currently unsigned.
 
 - macOS may show Gatekeeper warnings until the app is signed with an Apple Developer ID certificate and notarized.
+- Automatic macOS updates require a Developer ID signed app. Unsigned macOS builds should be updated by downloading the latest DMG from GitHub.
 - Windows may show SmartScreen warnings until the app is signed with a trusted Windows code-signing certificate.
 
 For local testing on Apple Silicon, an unpacked macOS build can be ad-hoc signed:
