@@ -1680,7 +1680,7 @@
   <div class="app-chrome-title">
     <span class="app-chrome-mark" aria-hidden="true"></span>
     <span id="appChromeTitle">Nimbus</span>
-    <span class="app-chrome-version" id="appChromeVersion">1.2.6</span>
+    <span class="app-chrome-version" id="appChromeVersion">1.2.7</span>
   </div>
   <div class="app-chrome-status" id="appChromeStatus">Focus session</div>
 </header>
@@ -1840,7 +1840,7 @@
 <aside class="settings-panel" id="settingsPanel" aria-hidden="true">
   <div class="settings-header">
     <div class="settings-title">Settings</div>
-    <div class="settings-subtitle" id="settingsVersion">Version 1.2.6</div>
+    <div class="settings-subtitle" id="settingsVersion">Version 1.2.7</div>
     <button class="panel-close" id="settingsCloseBtn" type="button" aria-label="Close settings">&times;</button>
   </div>
 
@@ -1916,6 +1916,13 @@ const DEFAULT_PREFERENCES = {
 };
 const VERSION_HISTORY = [
   {
+    version: '1.2.7',
+    date: '2026-04-26',
+    changes: [
+      'Fixed update checks by reading release metadata directly from GitHub release downloads.'
+    ]
+  },
+  {
     version: '1.2.6',
     date: '2026-04-26',
     changes: [
@@ -1985,7 +1992,7 @@ let appInfo = {
   version: VERSION_HISTORY[0].version,
   platform: IS_DESKTOP ? desktopBridge.platform : 'web',
   isPackaged: false,
-  updateFeedUrl: 'https://github.com/murderszn/nimbus/releases/latest',
+  updateFeedUrl: 'https://github.com/murderszn/nimbus/releases/latest/download/',
 };
 let updateState = {
   state: 'idle',

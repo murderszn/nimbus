@@ -7,7 +7,8 @@ const { autoUpdater } = require('electron-updater');
 const isMac = process.platform === 'darwin';
 const isDev = process.argv.includes('--dev');
 const windowBackground = '#061a3d';
-const updateFeedUrl = 'https://github.com/murderszn/nimbus/releases/latest';
+const updateFeedUrl = 'https://github.com/murderszn/nimbus/releases/latest/download/';
+const updateReleaseUrl = 'https://github.com/murderszn/nimbus/releases/latest';
 let checkedUpdatesThisLaunch = false;
 let pendingStartupUpdateCheck = null;
 let updateStatus = {
@@ -43,7 +44,8 @@ function publicUpdateStatus() {
     supported: app.isPackaged && !isDev,
     isPackaged: app.isPackaged,
     currentVersion: app.getVersion(),
-    feedUrl: updateFeedUrl
+    feedUrl: updateFeedUrl,
+    releaseUrl: updateReleaseUrl
   };
 }
 
@@ -68,6 +70,10 @@ function normalizeUpdateError(error) {
 }
 
 function configureAutoUpdater() {
+  autoUpdater.setFeedURL({
+    provider: 'generic',
+    url: updateFeedUrl
+  });
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
   autoUpdater.allowPrerelease = false;
@@ -174,6 +180,7 @@ function registerIpcHandlers() {
     arch: process.arch,
     isPackaged: app.isPackaged,
     updateFeedUrl,
+    updateReleaseUrl,
     updateStatus: publicUpdateStatus()
   }));
 
