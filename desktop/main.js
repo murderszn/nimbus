@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, ipcMain, nativeImage, shell } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, nativeImage, screen, shell } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
@@ -11,6 +11,7 @@ const updateFeedUrl = 'https://github.com/murderszn/nimbus/releases/latest/downl
 const updateReleaseUrl = 'https://github.com/murderszn/nimbus/releases/latest';
 let checkedUpdatesThisLaunch = false;
 let pendingStartupUpdateCheck = null;
+const popoutWindowStates = new WeakMap();
 let updateStatus = {
   state: 'idle',
   message: 'Ready to check for updates.',
@@ -213,6 +214,14 @@ function registerIpcHandlers() {
     autoUpdater.quitAndInstall(false, true);
     return publicUpdateStatus();
   });
+
+  ipcMain.handle('nimbus:enter-popout-mode', event => (
+    enterWindowPopoutMode(BrowserWindow.fromWebContents(event.sender))
+  ));
+
+  ipcMain.handle('nimbus:exit-popout-mode', event => (
+    exitWindowPopoutMode(BrowserWindow.fromWebContents(event.sender))
+  ));
 }
 
 function windowChromeOptions({ compact = false } = {}) {
@@ -275,14 +284,93 @@ function popoutOverlayOptions() {
   };
 }
 
+function invokeWindowSetter(window, method, ...args) {
+  if (typeof window?.[method] !== 'function') return;
+  try {
+    window[method](...args);
+  } catch {}
+}
+
+function compactPopoutBounds(window) {
+  const display = screen.getDisplayMatching(window.getBounds());
+  const { workArea } = display;
+  const width = Math.min(360, Math.max(280, workArea.width - 48));
+  const height = Math.min(360, Math.max(280, workArea.height - 96));
+  return {
+    width,
+    height,
+    x: Math.round(workArea.x + workArea.width - width - 24),
+    y: Math.round(workArea.y + 64)
+  };
+}
+
 function configurePopoutOverlay(window) {
   window.setAlwaysOnTop(true, 'floating');
-  window.setFullScreenable(false);
-  window.setSkipTaskbar(true);
+  invokeWindowSetter(window, 'setFullScreenable', false);
+  invokeWindowSetter(window, 'setSkipTaskbar', true);
 
   if (isMac) {
-    window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+    invokeWindowSetter(window, 'setVisibleOnAllWorkspaces', true, { visibleOnFullScreen: true });
   }
+}
+
+function enterWindowPopoutMode(window) {
+  if (!window || window.isDestroyed()) return { active: false };
+  const existingState = popoutWindowStates.get(window);
+  if (existingState?.active) return { active: true };
+
+  const state = {
+    active: true,
+    bounds: window.getBounds(),
+    minimumSize: window.getMinimumSize(),
+    resizable: window.isResizable(),
+    maximizable: window.isMaximizable(),
+    minimizable: window.isMinimizable(),
+    fullScreen: window.isFullScreen(),
+    maximized: window.isMaximized()
+  };
+  popoutWindowStates.set(window, state);
+
+  if (state.fullScreen) window.setFullScreen(false);
+  if (state.maximized) window.unmaximize();
+
+  window.setMinimumSize(280, 280);
+  window.setResizable(true);
+  invokeWindowSetter(window, 'setMaximizable', false);
+  invokeWindowSetter(window, 'setMinimizable', false);
+  configurePopoutOverlay(window);
+  window.setTitle('Nimbus Timer');
+  window.setBounds(compactPopoutBounds(window), true);
+  window.webContents.send('nimbus:popout-mode', { active: true });
+  return { active: true };
+}
+
+function exitWindowPopoutMode(window) {
+  if (!window || window.isDestroyed()) return { active: false };
+  const state = popoutWindowStates.get(window);
+  popoutWindowStates.delete(window);
+
+  window.setAlwaysOnTop(false);
+  invokeWindowSetter(window, 'setSkipTaskbar', false);
+  invokeWindowSetter(window, 'setVisibleOnAllWorkspaces', false);
+  invokeWindowSetter(window, 'setFullScreenable', true);
+  window.setTitle('Nimbus');
+
+  if (state) {
+    window.setMinimumSize(...state.minimumSize);
+    window.setResizable(state.resizable);
+    invokeWindowSetter(window, 'setMaximizable', state.maximizable);
+    invokeWindowSetter(window, 'setMinimizable', state.minimizable);
+    window.setBounds(state.bounds, true);
+    if (state.maximized) window.maximize();
+    if (state.fullScreen) window.setFullScreen(true);
+  } else {
+    window.setMinimumSize(760, 560);
+    window.setBounds({ width: 1120, height: 760 }, true);
+  }
+
+  window.webContents.send('nimbus:popout-mode', { active: false });
+  return { active: false };
 }
 
 function hardenWindow(window) {

@@ -1,6 +1,6 @@
 {
   "name": "nimbus",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "Nimbus Pomodoro Timer desktop client for macOS and Windows.",
   "private": true,
   "author": "Josh Johnson",

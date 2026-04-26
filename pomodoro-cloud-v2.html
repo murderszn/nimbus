@@ -1680,7 +1680,7 @@
   <div class="app-chrome-title">
     <span class="app-chrome-mark" aria-hidden="true"></span>
     <span id="appChromeTitle">Nimbus</span>
-    <span class="app-chrome-version" id="appChromeVersion">1.2.7</span>
+    <span class="app-chrome-version" id="appChromeVersion">1.2.8</span>
   </div>
   <div class="app-chrome-status" id="appChromeStatus">Focus session</div>
 </header>
@@ -1840,7 +1840,7 @@
 <aside class="settings-panel" id="settingsPanel" aria-hidden="true">
   <div class="settings-header">
     <div class="settings-title">Settings</div>
-    <div class="settings-subtitle" id="settingsVersion">Version 1.2.7</div>
+    <div class="settings-subtitle" id="settingsVersion">Version 1.2.8</div>
     <button class="panel-close" id="settingsCloseBtn" type="button" aria-label="Close settings">&times;</button>
   </div>
 
@@ -1915,6 +1915,13 @@ const DEFAULT_PREFERENCES = {
   adaptiveCanvasResize: true,
 };
 const VERSION_HISTORY = [
+  {
+    version: '1.2.8',
+    date: '2026-04-26',
+    changes: [
+      'Desktop popout now transforms the current window instead of opening a second visible app window.'
+    ]
+  },
   {
     version: '1.2.7',
     date: '2026-04-26',
@@ -2010,6 +2017,7 @@ let webPipWindow = null;
 let webPipGaugeLength = 0;
 let lastWebPipSignature = '';
 let applyingRemoteState = false;
+let desktopPopoutMode = IS_POPOUT;
 let zenMode = false;
 let lastRenderedClock = '';
 const handledMessageIds = new Set();
@@ -2532,6 +2540,29 @@ function toggleSettings() {
   applyUpdateStatus(updateState);
 }
 
+function isPopoutMode() {
+  return IS_POPOUT || desktopPopoutMode;
+}
+
+function setPopoutUiMode(active) {
+  desktopPopoutMode = !!active;
+  const popoutActive = isPopoutMode();
+  if(popoutActive) {
+    closePanels();
+    setThemePopover(false);
+    setDownloadMenu(false);
+    if(zenMode) setZenMode(false);
+  }
+  document.body.classList.toggle('popout-mode', popoutActive);
+  document.title = popoutActive ? 'Nimbus Timer' : 'Nimbus — Pomodoro Timer';
+  const btn = document.getElementById('popoutToggle');
+  if(btn) {
+    btn.setAttribute('aria-label', popoutActive ? 'Return timer to full app' : 'Open popout timer');
+    btn.title = popoutActive ? 'Return to full app (P)' : 'Pop out timer (P)';
+  }
+  easeCanvasDuringInteraction();
+}
+
 function setZenMode(next) {
   zenMode = !!next;
   if(zenMode) {
@@ -3038,9 +3069,19 @@ function renderWebPictureInPicture(force = false) {
   renderGaugeProgress(pipDocument, webPipGaugeLength, PIP_GAUGE_IDS);
 }
 
-function openPopoutWindow() {
+async function openPopoutWindow() {
   easeCanvasDuringInteraction();
   setThemePopover(false);
+  setDownloadMenu(false);
+  if(IS_DESKTOP && desktopBridge.enterPopoutMode) {
+    try {
+      const status = await desktopBridge.enterPopoutMode();
+      setPopoutUiMode(!!status?.active);
+    } catch(e) {
+      setPopoutUiMode(true);
+    }
+    return;
+  }
   if(popoutWindow && !popoutWindow.closed) {
     popoutWindow.focus();
     broadcastTimerState();
@@ -3082,8 +3123,15 @@ function openBrowserPopoutWindow() {
   }
 }
 
-function popBackIn() {
+async function popBackIn() {
   easeCanvasDuringInteraction();
+  if(IS_DESKTOP && desktopPopoutMode && desktopBridge.exitPopoutMode) {
+    try {
+      await desktopBridge.exitPopoutMode();
+    } catch(e) {}
+    setPopoutUiMode(false);
+    return;
+  }
   postSyncMessage({ type: 'focus-main' });
   if(window.opener && !window.opener.closed) {
     window.opener.focus();
@@ -3096,7 +3144,7 @@ function popBackIn() {
 }
 
 function togglePopoutWindow() {
-  if(IS_POPOUT) {
+  if(isPopoutMode()) {
     popBackIn();
     return;
   }
@@ -3108,14 +3156,11 @@ function togglePopoutWindow() {
 }
 
 function configurePopoutMode() {
-  const btn = document.getElementById('popoutToggle');
+  if(desktopBridge.onPopoutMode) {
+    desktopBridge.onPopoutMode(status => setPopoutUiMode(!!status?.active));
+  }
   if(!IS_POPOUT) return;
-  document.body.classList.remove('sidebar-open');
-  document.body.classList.remove('settings-open');
-  document.body.classList.add('popout-mode');
-  document.title = 'Nimbus Timer';
-  btn.setAttribute('aria-label', 'Pop timer back in');
-  btn.title = 'Pop back in (P)';
+  setPopoutUiMode(true);
   applyLastStoredTimerState();
   postSyncMessage({ type: 'request-state' });
 }
@@ -3536,7 +3581,7 @@ document.addEventListener('keydown', e => {
     '3': ['long', 15],
   };
 
-  if(key === 'z' && !IS_POPOUT) {
+  if(key === 'z' && !isPopoutMode()) {
     e.preventDefault();
     toggleZenMode();
     return;
@@ -3548,7 +3593,7 @@ document.addEventListener('keydown', e => {
     return;
   }
 
-  if(IS_POPOUT) {
+  if(isPopoutMode()) {
     if(modeHotkeys[key]) {
       e.preventDefault();
       setMode(modeHotkeys[key][0], modeHotkeys[key][1]);

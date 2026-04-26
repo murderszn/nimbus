@@ -16,5 +16,8 @@ contextBridge.exposeInMainWorld('nimbusDesktop', {
   setPreferences: preferences => ipcRenderer.invoke('nimbus:set-preferences', preferences),
   checkForUpdates: options => ipcRenderer.invoke('nimbus:check-for-updates', options),
   installUpdate: () => ipcRenderer.invoke('nimbus:install-update'),
-  onUpdateStatus: callback => listen('nimbus:update-status', callback)
+  enterPopoutMode: () => ipcRenderer.invoke('nimbus:enter-popout-mode'),
+  exitPopoutMode: () => ipcRenderer.invoke('nimbus:exit-popout-mode'),
+  onUpdateStatus: callback => listen('nimbus:update-status', callback),
+  onPopoutMode: callback => listen('nimbus:popout-mode', callback)
 });
