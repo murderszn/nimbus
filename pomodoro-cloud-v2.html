@@ -529,7 +529,7 @@
     .theme-swatch.locked,
     .theme-swatch:disabled {
       position: relative;
-      cursor: not-allowed;
+      cursor: pointer;
       opacity: .46;
       filter: grayscale(1) saturate(.18);
       overflow: hidden;
@@ -1160,6 +1160,65 @@
       background: transparent;
     }
     .settings-action-btn[hidden] { display: none; }
+    .unlock-card {
+      margin-top: 14px;
+      padding: 14px;
+      border: 1px solid var(--panel-line);
+      border-radius: 8px;
+      background: rgba(var(--bg-a-rgb), .34);
+    }
+    .unlock-card.unlocked {
+      border-color: rgba(var(--cloud-e-rgb), .36);
+      background: rgba(var(--cloud-e-rgb), .08);
+    }
+    .unlock-title {
+      color: var(--tx);
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: .08em;
+      margin-bottom: 5px;
+    }
+    .unlock-copy {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    .unlock-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .settings-input {
+      min-width: 0;
+      width: 100%;
+      border: 1px solid var(--panel-line);
+      border-radius: 8px;
+      background: rgba(var(--bg-a-rgb), .34);
+      color: var(--tx);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: .04em;
+      padding: 10px 11px;
+      outline: none;
+      transition: border-color .18s ease, background .18s ease, color var(--trans);
+    }
+    .settings-input::placeholder {
+      color: rgba(255,255,255,.36);
+    }
+    .settings-input:focus {
+      border-color: rgba(var(--cloud-e-rgb), .52);
+      background: rgba(var(--cloud-e-rgb), .08);
+    }
+    .unlock-status {
+      min-height: 16px;
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.4;
+      letter-spacing: .04em;
+    }
     .version-history-list {
       display: flex;
       flex-direction: column;
@@ -1304,6 +1363,9 @@
       .theme-swatch {
         width: 26px;
         height: 26px;
+      }
+      .unlock-form {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -1680,7 +1742,7 @@
   <div class="app-chrome-title">
     <span class="app-chrome-mark" aria-hidden="true"></span>
     <span id="appChromeTitle">Nimbus</span>
-    <span class="app-chrome-version" id="appChromeVersion">1.2.10</span>
+    <span class="app-chrome-version" id="appChromeVersion">1.2.11</span>
   </div>
   <div class="app-chrome-status" id="appChromeStatus">Focus session</div>
 </header>
@@ -1748,7 +1810,7 @@
         <button class="theme-swatch" data-theme="everest" style="--swatch-hi:#d9fff1;--swatch-mid:#62f0bd;--swatch-deep:#007a5f" aria-label="Everest green theme" title="Everest green"></button>
         <button class="theme-swatch" data-theme="amber" style="--swatch-hi:#fff0b8;--swatch-mid:#ffd15c;--swatch-deep:#9c5a00" aria-label="Amber theme" title="Amber"></button>
         <button class="theme-swatch" data-theme="fission" style="--swatch-hi:#f0ccff;--swatch-mid:#d06cff;--swatch-deep:#5522a6" aria-label="Fission purple theme" title="Fission purple"></button>
-        <button class="theme-swatch locked" data-theme="blackout" style="--swatch-hi:#3a3a3a;--swatch-mid:#151515;--swatch-deep:#000000" aria-label="Black dark mode locked" title="Black dark mode locked" disabled></button>
+        <button class="theme-swatch locked" data-theme="abyss" style="--swatch-hi:#222631;--swatch-mid:#07090d;--swatch-deep:#000000" aria-label="Abyss mode locked" title="Abyss mode locked" aria-disabled="true"></button>
       </div>
     </div>
     <div class="download-picker" id="downloadPicker">
@@ -1840,7 +1902,7 @@
 <aside class="settings-panel" id="settingsPanel" aria-hidden="true">
   <div class="settings-header">
     <div class="settings-title">Settings</div>
-    <div class="settings-subtitle" id="settingsVersion">Version 1.2.10</div>
+    <div class="settings-subtitle" id="settingsVersion">Version 1.2.11</div>
     <button class="panel-close" id="settingsCloseBtn" type="button" aria-label="Close settings">&times;</button>
   </div>
 
@@ -1892,6 +1954,16 @@
           <span class="settings-switch-track" aria-hidden="true"></span>
         </span>
       </label>
+
+      <div class="unlock-card" id="abyssUnlockCard">
+        <div class="unlock-title" id="abyssUnlockTitle">Abyss mode</div>
+        <div class="unlock-copy" id="abyssUnlockCopy">Sign up to unlock the all-black Nimbus theme.</div>
+        <form class="unlock-form" id="abyssUnlockForm" novalidate>
+          <input class="settings-input" id="abyssEmailInput" type="email" inputmode="email" autocomplete="email" placeholder="Email address" maxlength="120" />
+          <button class="settings-action-btn" id="abyssUnlockBtn" type="submit">Unlock</button>
+        </form>
+        <div class="unlock-status" id="abyssUnlockStatus" aria-live="polite"></div>
+      </div>
     </section>
 
     <section class="settings-section">
@@ -1912,7 +1984,8 @@ const themes = {
   mojave:  { a:'#2d090b', b:'#8f1d1c', c:'#d93b32', d:'#ff735f', e:'#ffd1c5', text:'#fff5f1', muted:'rgba(255,220,211,0.82)', border:'rgba(255,145,120,0.44)' },
   everest: { a:'#04271f', b:'#007a5f', c:'#13b988', d:'#62f0bd', e:'#d9fff1', text:'#f3fff9', muted:'rgba(210,255,238,0.82)', border:'rgba(125,255,205,0.42)' },
   amber:   { a:'#2b1703', b:'#9c5a00', c:'#e89510', d:'#ffd15c', e:'#fff0b8', text:'#fff9e8', muted:'rgba(255,234,188,0.82)', border:'rgba(255,202,88,0.44)' },
-  fission: { a:'#1d0c36', b:'#5522a6', c:'#8e45ff', d:'#d06cff', e:'#f0ccff', text:'#fcf5ff', muted:'rgba(238,207,255,0.82)', border:'rgba(216,140,255,0.44)' }
+  fission: { a:'#1d0c36', b:'#5522a6', c:'#8e45ff', d:'#d06cff', e:'#f0ccff', text:'#fcf5ff', muted:'rgba(238,207,255,0.82)', border:'rgba(216,140,255,0.44)' },
+  abyss:   { a:'#000000', b:'#05070a', c:'#101722', d:'#2b3340', e:'#d7e2ef', text:'#f8fbff', muted:'rgba(215,226,239,0.72)', border:'rgba(215,226,239,0.24)' }
 };
 
 const root = document.documentElement;
@@ -1920,6 +1993,7 @@ const STORAGE_KEY = 'nimbus-pomodoro-cloud-v2';
 const IS_POPOUT = new URLSearchParams(window.location.search).get('popout') === '1';
 const SYNC_KEY = `${STORAGE_KEY}:timer-sync`;
 const RELEASE_DOWNLOAD_BASE = 'https://github.com/murderszn/nimbus/releases/latest/download';
+const ABYSS_SIGNUP_WEBHOOK_URL = '';
 const syncChannel = 'BroadcastChannel' in window ? new BroadcastChannel(SYNC_KEY) : null;
 const DEFAULT_PREFERENCES = {
   autoUpdateOnStart: true,
@@ -1927,6 +2001,14 @@ const DEFAULT_PREFERENCES = {
   adaptiveCanvasResize: true,
 };
 const VERSION_HISTORY = [
+  {
+    version: '1.2.11',
+    date: '2026-04-26',
+    changes: [
+      'Renamed the locked black theme to Abyss mode.',
+      'Added email signup unlock and webhook payload support for Abyss mode.'
+    ]
+  },
   {
     version: '1.2.10',
     date: '2026-04-26',
@@ -2020,6 +2102,7 @@ const VERSION_HISTORY = [
 let mode = 'work', total = 25*60, remain = total, remainingMs = total*1000, running = false, tid = null, timerDeadline = 0;
 let sessions = 0, sessionTarget = 4;
 let currentTheme = 'blue';
+let abyssUnlock = { unlocked: false, email: '', unlockedAt: null };
 let preferences = { ...DEFAULT_PREFERENCES };
 let appInfo = {
   name: 'Nimbus',
@@ -2101,6 +2184,15 @@ function normalizeLogEntry(entry) {
   };
 }
 
+function normalizeEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function isValidEmail(value) {
+  const email = normalizeEmail(value);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+}
+
 function saveState() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -2108,6 +2200,7 @@ function saveState() {
       currentStreak,
       sessions,
       currentTheme,
+      abyssUnlock,
       preferences,
       savedAt: new Date().toISOString(),
     }));
@@ -2124,7 +2217,15 @@ function loadState() {
     }
     currentStreak = Math.max(0, Number(saved.currentStreak) || 0);
     sessions = Math.min(sessionTarget, Math.max(0, Number(saved.sessions) || 0));
-    if(themes[saved.currentTheme]) currentTheme = saved.currentTheme;
+    if(saved.abyssUnlock && typeof saved.abyssUnlock === 'object') {
+      const email = normalizeEmail(saved.abyssUnlock.email);
+      abyssUnlock = {
+        unlocked: !!saved.abyssUnlock.unlocked && isValidEmail(email),
+        email,
+        unlockedAt: saved.abyssUnlock.unlockedAt || null,
+      };
+    }
+    if(themes[saved.currentTheme] && (saved.currentTheme !== 'abyss' || abyssUnlock.unlocked)) currentTheme = saved.currentTheme;
     if(saved.preferences && typeof saved.preferences === 'object') {
       preferences = { ...DEFAULT_PREFERENCES, ...saved.preferences };
     }
@@ -2154,8 +2255,85 @@ function setPalette(p) {
   root.style.setProperty('--border', p.border);
 }
 
+function canUseTheme(name) {
+  return name !== 'abyss' || abyssUnlock.unlocked;
+}
+
+function renderAbyssUnlockState(message = '') {
+  const swatch = document.querySelector('[data-theme="abyss"]');
+  const card = document.getElementById('abyssUnlockCard');
+  const form = document.getElementById('abyssUnlockForm');
+  const input = document.getElementById('abyssEmailInput');
+  const copy = document.getElementById('abyssUnlockCopy');
+  const status = document.getElementById('abyssUnlockStatus');
+
+  if(swatch) {
+    swatch.classList.toggle('locked', !abyssUnlock.unlocked);
+    swatch.toggleAttribute('aria-disabled', !abyssUnlock.unlocked);
+    swatch.setAttribute('aria-label', abyssUnlock.unlocked ? 'Abyss mode' : 'Abyss mode locked');
+    swatch.title = abyssUnlock.unlocked ? 'Abyss mode' : 'Abyss mode locked';
+  }
+  if(card) card.classList.toggle('unlocked', abyssUnlock.unlocked);
+  if(form) form.hidden = abyssUnlock.unlocked;
+  if(input && abyssUnlock.email) input.value = abyssUnlock.email;
+  if(copy) {
+    copy.textContent = abyssUnlock.unlocked
+      ? 'Abyss mode is unlocked on this client.'
+      : 'Sign up to unlock the all-black Nimbus theme.';
+  }
+  if(status) status.textContent = message || (abyssUnlock.unlocked ? `Unlocked for ${abyssUnlock.email}.` : '');
+}
+
+function focusAbyssUnlock() {
+  if(!document.body.classList.contains('settings-open')) toggleSettings();
+  setTimeout(() => {
+    const input = document.getElementById('abyssEmailInput');
+    if(input && !abyssUnlock.unlocked) input.focus();
+  }, 80);
+}
+
+function postAbyssSignup(email) {
+  if(!ABYSS_SIGNUP_WEBHOOK_URL) return Promise.resolve();
+  const payload = {
+    email,
+    source: 'nimbus',
+    unlock: 'abyss',
+    appVersion: appInfo.version || VERSION_HISTORY[0].version,
+    platform: appInfo.platform || 'web',
+    sentAt: new Date().toISOString(),
+  };
+  return fetch(ABYSS_SIGNUP_WEBHOOK_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    keepalive: true,
+    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+    body: JSON.stringify(payload),
+  }).catch(() => {});
+}
+
+function unlockAbyssMode(email) {
+  const normalized = normalizeEmail(email);
+  if(!isValidEmail(normalized)) {
+    renderAbyssUnlockState('Enter a valid email address.');
+    return;
+  }
+  abyssUnlock = {
+    unlocked: true,
+    email: normalized,
+    unlockedAt: new Date().toISOString(),
+  };
+  saveState();
+  renderAbyssUnlockState('Abyss mode unlocked.');
+  postAbyssSignup(normalized);
+  setTheme('abyss');
+}
+
 function setTheme(name, persist = true) {
   if(!themes[name]) return;
+  if(!canUseTheme(name)) {
+    focusAbyssUnlock();
+    return;
+  }
   currentTheme = name;
   setPalette(themes[name]);
   document.querySelectorAll('.theme-swatch').forEach(b => {
@@ -2682,6 +2860,7 @@ function getTimerState() {
     running,
     sessions,
     currentTheme,
+    abyssUnlock,
     dissolve,
     currentName: getCurrentName(),
     doneVisible: document.getElementById('doneMsg').classList.contains('visible'),
@@ -2712,6 +2891,14 @@ function applyTimerState(state) {
   running = !!state.running;
   sessions = Math.min(sessionTarget, Math.max(0, Number(state.sessions) || 0));
   dissolve = Math.max(0, Math.min(1, Number(state.dissolve) || 0));
+  if(state.abyssUnlock?.unlocked && isValidEmail(state.abyssUnlock.email)) {
+    abyssUnlock = {
+      unlocked: true,
+      email: normalizeEmail(state.abyssUnlock.email),
+      unlockedAt: state.abyssUnlock.unlockedAt || new Date().toISOString(),
+    };
+    renderAbyssUnlockState();
+  }
   if(themes[state.currentTheme]) setTheme(state.currentTheme, false);
   document.querySelectorAll('.pill').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   document.getElementById('currentSessionName').value = state.currentName || '';
@@ -3593,6 +3780,11 @@ document.getElementById('downloadToggle').addEventListener('click', toggleDownlo
 
 document.querySelectorAll('.theme-swatch').forEach(b => {
   b.addEventListener('click', () => {
+    if(b.dataset.theme === 'abyss' && b.classList.contains('locked')) {
+      setThemePopover(false);
+      focusAbyssUnlock();
+      return;
+    }
     if(b.disabled || b.classList.contains('locked')) return;
     setTheme(b.dataset.theme);
     setThemePopover(false);
@@ -3735,6 +3927,11 @@ document.getElementById('autoRestartAfterUpdate').addEventListener('change', e =
 
 document.getElementById('adaptiveCanvasResize').addEventListener('change', e => {
   updatePreference('adaptiveCanvasResize', e.target.checked);
+});
+
+document.getElementById('abyssUnlockForm').addEventListener('submit', e => {
+  e.preventDefault();
+  unlockAbyssMode(document.getElementById('abyssEmailInput').value);
 });
 
 document.getElementById('checkUpdatesBtn').addEventListener('click', checkUpdatesNow);
@@ -4077,6 +4274,7 @@ function draw(ts) {
 }
 
 loadState();
+renderAbyssUnlockState();
 setTheme(currentTheme, false);
 buildGauge();
 configureDesktopChrome();
