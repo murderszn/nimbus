@@ -13,6 +13,19 @@ Nimbus is a polished Pomodoro timer for focused work sessions. It started as a s
 
 The app combines a cloud-inspired animated canvas interface with practical session tracking: focus blocks, short breaks, long breaks, session naming, pause history, progress metrics, theme controls, CSV export, fullscreen mode, and a compact popout timer.
 
+## Download Nimbus
+
+Nimbus currently ships desktop clients for macOS and Windows. iPhone and iPad builds are not published yet.
+
+| Platform | Download |
+| --- | --- |
+| macOS Apple Silicon | [Download DMG](https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-1.2.9-mac-arm64.dmg) |
+| macOS Intel | [Download DMG](https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-1.2.9-mac-x64.dmg) |
+| Windows x64 | [Download Installer](https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-Setup-1.2.9-x64.exe) |
+| Windows x64 Portable | [Download Portable EXE](https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-Portable-1.2.9-x64.exe) |
+
+All release files are available on the [latest Nimbus release](https://github.com/murderszn/nimbus/releases/latest).
+
 ## What It Does
 
 - Runs a classic Pomodoro flow with Focus, Short Break, and Long Break modes.
