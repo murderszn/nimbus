@@ -4,34 +4,84 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nimbus — Pomodoro Timer</title>
+  <meta name="description" content="Nimbus is a polished Pomodoro timer for focused work sessions with animated cloud visuals, session tracking, progress metrics, CSV export, and desktop builds for macOS and Windows." />
+  <meta name="application-name" content="Nimbus" />
+  <meta name="apple-mobile-web-app-title" content="Nimbus" />
+  <meta name="theme-color" content="#061a3d" />
+  <meta name="msapplication-TileColor" content="#061a3d" />
+  <meta name="msapplication-TileImage" content="./assets/icon-192.png" />
+  <meta name="robots" content="index, follow" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Nimbus" />
+  <meta property="og:title" content="Nimbus — Pomodoro Timer" />
+  <meta property="og:description" content="A polished Pomodoro timer for focused work sessions with session tracking, progress metrics, and native desktop builds." />
+  <meta property="og:image" content="./assets/icon.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1024" />
+  <meta property="og:image:height" content="1024" />
+  <meta property="og:image:alt" content="Nimbus app icon: a cloud with a Pomodoro progress ring." />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Nimbus — Pomodoro Timer" />
+  <meta name="twitter:description" content="A polished Pomodoro timer for focused work sessions with session tracking, progress metrics, and native desktop builds." />
+  <meta name="twitter:image" content="./assets/icon.png" />
+  <meta name="twitter:image:alt" content="Nimbus app icon: a cloud with a Pomodoro progress ring." />
+  <link rel="icon" href="./assets/icon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="16x16" href="./assets/favicon-16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="48x48" href="./assets/favicon-48.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png" />
+  <link rel="preload" as="image" href="./assets/icon-192.png" />
+  <link rel="manifest" href="./assets/site.webmanifest" />
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Nimbus",
+      "applicationCategory": "ProductivityApplication",
+      "operatingSystem": "Web, macOS, Windows",
+      "description": "Nimbus is a polished Pomodoro timer for focused work sessions with animated cloud visuals, session tracking, progress metrics, CSV export, and desktop builds for macOS and Windows.",
+      "image": "./assets/icon.png",
+      "logo": "./assets/icon.png",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Sans:wght@200;300;400&display=swap" rel="stylesheet" />
+  <script>
+    if (window.nimbusDesktop?.isDesktop) {
+      document.documentElement.classList.add('desktop-app', `platform-${window.nimbusDesktop.platform || 'desktop'}`);
+    }
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --work-a: #1a2a4a; --work-b: #0e3a6e; --work-c: #1c5ea8;
-      --work-d: #4a9de8; --work-e: #8dc8f8;
-      --work-text: #d6edff; --work-muted: rgba(180,220,255,0.55); --work-border: rgba(140,200,255,0.18);
+      --work-a: #061a3d; --work-b: #0067c8; --work-c: #0a84ff;
+      --work-d: #32d3ff; --work-e: #b9f3ff;
+      --work-text: #f6fbff; --work-muted: rgba(221,245,255,0.82); --work-border: rgba(125,225,255,0.44);
 
-      --short-a: #0f2e28; --short-b: #0c4035; --short-c: #0e6b52;
-      --short-d: #26b88a; --short-e: #7de8c0;
-      --short-text: #c8f5e4; --short-muted: rgba(150,230,200,0.55); --short-border: rgba(100,220,170,0.18);
+      --short-a: #04271f; --short-b: #007a5f; --short-c: #13b988;
+      --short-d: #62f0bd; --short-e: #d9fff1;
+      --short-text: #f3fff9; --short-muted: rgba(210,255,238,0.82); --short-border: rgba(125,255,205,0.42);
 
-      --long-a: #2c1a10; --long-b: #4a2810; --long-c: #8b4a1a;
-      --long-d: #d4843a; --long-e: #f0bf80;
-      --long-text: #fde8c8; --long-muted: rgba(240,190,130,0.55); --long-border: rgba(220,160,90,0.18);
+      --long-a: #2b1005; --long-b: #9b320f; --long-c: #ed6222;
+      --long-d: #ffad45; --long-e: #ffe2a3;
+      --long-text: #fff7e8; --long-muted: rgba(255,226,177,0.82); --long-border: rgba(255,190,92,0.42);
 
       --bg-a: var(--work-a); --bg-b: var(--work-b);
       --cloud-c: var(--work-c); --cloud-d: var(--work-d); --cloud-e: var(--work-e);
       --tx: var(--work-text); --muted: var(--work-muted); --border: var(--work-border);
-      --bg-a-rgb: 26, 42, 74; --bg-b-rgb: 14, 58, 110;
-      --cloud-c-rgb: 28, 94, 168; --cloud-d-rgb: 74, 157, 232; --cloud-e-rgb: 141, 200, 248;
-      --panel-bg: rgba(var(--bg-a-rgb), .82);
-      --panel-surface: rgba(var(--bg-b-rgb), .36);
-      --panel-line: rgba(var(--cloud-e-rgb), .16);
-      --panel-hover: rgba(var(--cloud-e-rgb), .08);
+      --bg-a-rgb: 6, 26, 61; --bg-b-rgb: 0, 103, 200;
+      --cloud-c-rgb: 10, 132, 255; --cloud-d-rgb: 50, 211, 255; --cloud-e-rgb: 185, 243, 255;
+      --panel-bg: rgba(var(--bg-a-rgb), .88);
+      --panel-surface: rgba(var(--bg-b-rgb), .44);
+      --panel-line: rgba(var(--cloud-e-rgb), .24);
+      --panel-hover: rgba(var(--cloud-e-rgb), .13);
       --trans: 2.4s cubic-bezier(.4,0,.2,1);
       --sidebar-w: 320px;
       --page-x: 36px;
@@ -39,6 +89,7 @@
       --scene-top: 92px;
       --scene-bottom: 238px;
       --controls-bottom: 48px;
+      --chrome-h: 0px;
       --main-shift: 0px;
       --log-shift: 0px;
       --raise: 0px;
@@ -53,16 +104,114 @@
       transition: background var(--trans);
       color: var(--tx);
     }
+
+    html.desktop-app body {
+      --chrome-h: 48px;
+      --top-y: 64px;
+      --scene-top: 128px;
+      --scene-bottom: 220px;
+    }
+    html.desktop-app.platform-darwin body {
+      --chrome-left-safe: 92px;
+      --chrome-right-safe: 22px;
+    }
+    html.desktop-app:not(.platform-darwin) body {
+      --chrome-left-safe: 18px;
+      --chrome-right-safe: 148px;
+    }
     body.sidebar-open {
       --main-shift: calc(var(--sidebar-w) / -2);
       --log-shift: calc(var(--sidebar-w) * -1);
+    }
+    body.settings-open {
+      --main-shift: calc(var(--sidebar-w) / -2);
+      --log-shift: calc(var(--sidebar-w) * -1);
+    }
+
+    .app-chrome {
+      display: none;
+      position: fixed;
+      inset: 0 0 auto;
+      height: var(--chrome-h);
+      align-items: center;
+      gap: 16px;
+      padding: 0 var(--chrome-right-safe, 18px) 0 var(--chrome-left-safe, 18px);
+      background:
+        linear-gradient(180deg, rgba(var(--bg-a-rgb), .96), rgba(var(--bg-a-rgb), .72)),
+        radial-gradient(circle at 50% 0%, rgba(var(--cloud-e-rgb), .18), transparent 58%);
+      border-bottom: 1px solid rgba(var(--cloud-e-rgb), .18);
+      color: var(--tx);
+      z-index: 260;
+      -webkit-app-region: drag;
+      user-select: none;
+      transition: background var(--trans), border-color var(--trans), color var(--trans);
+    }
+    html.desktop-app .app-chrome {
+      display: flex;
+    }
+    .app-chrome-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 15px;
+      font-weight: 400;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .app-chrome-version {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: .12em;
+      color: var(--muted);
+      transform: translateY(1px);
+      transition: color var(--trans);
+    }
+    .app-chrome-mark {
+      width: 18px;
+      height: 18px;
+      border-radius: 6px;
+      background: url('./assets/icon-192.png') center / cover no-repeat;
+      box-shadow: 0 0 16px rgba(var(--cloud-d-rgb), .28);
+      flex: 0 0 auto;
+    }
+    .app-chrome-status {
+      min-width: 0;
+      margin-left: auto;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    html.desktop-app:not(.platform-darwin) .app-chrome-status {
+      margin-right: 6px;
+    }
+    html.desktop-app .wordmark {
+      display: none;
+    }
+    html.desktop-app:fullscreen body {
+      --chrome-h: 0px;
+      --top-y: 32px;
+      --scene-top: 92px;
+      --scene-bottom: 238px;
+    }
+    html.desktop-app:fullscreen .app-chrome {
+      display: none;
     }
 
     #canvas {
       position: absolute; inset: 0; width: 100%; height: 100%;
       transition: none;
     }
-    body.sidebar-open #canvas { width: 100%; }
+    body.sidebar-open #canvas,
+    body.settings-open #canvas { width: 100%; }
 
     /* ── SCENE ── */
     .scene {
@@ -96,7 +245,7 @@
       margin-bottom: -4px;
       overflow: visible;
       opacity: .92;
-      filter: drop-shadow(0 0 28px rgba(255,255,255,.08));
+      filter: drop-shadow(0 0 28px rgba(var(--cloud-e-rgb),.22));
       transition: opacity var(--trans);
     }
     .gauge-track {
@@ -132,6 +281,9 @@
     }
 
     .time-display {
+      display: inline-flex;
+      align-items: baseline;
+      justify-content: center;
       font-family: 'Cormorant Garamond', serif;
       font-size: clamp(92px, 17vw, 236px); font-weight: 300;
       letter-spacing: .025em; line-height: 1.02; color: var(--tx);
@@ -139,7 +291,32 @@
       max-width: 94vw;
       margin-bottom: 8px;
       transition: color var(--trans);
-      text-shadow: 0 0 80px rgba(255,255,255,.12), 0 0 160px rgba(255,255,255,.06);
+      text-shadow: 0 0 70px rgba(var(--cloud-e-rgb),.24), 0 0 160px rgba(var(--cloud-d-rgb),.12);
+    }
+    .time-segment {
+      display: inline-flex;
+      align-items: baseline;
+      white-space: nowrap;
+    }
+    .time-segment + .time-segment {
+      margin-left: .16em;
+    }
+    .time-value {
+      display: inline-block;
+      min-width: 1.1em;
+      text-align: right;
+    }
+    .time-unit {
+      margin-left: .035em;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .2em;
+      font-weight: 300;
+      letter-spacing: .16em;
+      line-height: 1;
+      text-transform: uppercase;
+      color: var(--muted);
+      transform: translateY(-.12em);
+      transition: color var(--trans);
     }
 
     .mode-label {
@@ -180,24 +357,24 @@
     .pill {
       min-width: 0; height: 34px;
       display: flex; align-items: center; justify-content: center;
-      background: rgba(0,0,0,.08); border: 1px solid var(--border); border-radius: 8px;
-      color: rgba(255,255,255,.72); font-family: 'DM Sans', sans-serif; font-size: 10px;
+      background: rgba(var(--bg-a-rgb),.18); border: 1px solid rgba(var(--cloud-e-rgb),.32); border-radius: 8px;
+      color: rgba(255,255,255,.82); font-family: 'DM Sans', sans-serif; font-size: 10px;
       font-weight: 300; letter-spacing: .13em; text-transform: uppercase;
       padding: 0 12px; cursor: pointer; outline: none;
       text-align: center; white-space: nowrap;
       backdrop-filter: none;
       transition: background .25s ease, border-color .25s ease, color var(--trans), box-shadow .25s ease;
     }
-    .pill:hover { border-color: rgba(255,255,255,.34); color: #fff; background: rgba(255,255,255,.06); }
+    .pill:hover { border-color: rgba(var(--cloud-e-rgb),.58); color: #fff; background: rgba(var(--cloud-e-rgb),.1); }
     .pill:focus-visible {
       border-color: rgba(255,255,255,.68);
       box-shadow: 0 0 0 3px rgba(255,255,255,.12);
     }
     .pill.active {
-      border-color: rgba(255,255,255,.5);
-      background: rgba(255,255,255,.1);
+      border-color: rgba(var(--cloud-e-rgb),.7);
+      background: linear-gradient(180deg, rgba(var(--cloud-e-rgb),.18), rgba(var(--cloud-d-rgb),.1));
       color: #fff;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 10px 24px rgba(0,0,0,.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 10px 26px rgba(0,0,0,.22), 0 0 24px rgba(var(--cloud-d-rgb),.16);
     }
 
     .btn-row {
@@ -206,32 +383,45 @@
       gap: 12px; align-items: center;
     }
 
-    .theme-picker {
+    .control-tools {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      min-height: 32px;
+    }
+
+    .theme-picker,
+    .download-picker {
       position: relative;
       display: flex; align-items: center; justify-content: center;
       min-height: 32px;
     }
 
-    .theme-toggle {
+    .theme-toggle,
+    .download-toggle {
       min-width: 112px; height: 32px;
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      background: rgba(0,0,0,.08); border: 1px solid var(--border); border-radius: 8px;
-      color: rgba(255,255,255,.74); font-family: 'DM Sans', sans-serif; font-size: 10px;
+      background: rgba(var(--bg-a-rgb),.2); border: 1px solid rgba(var(--cloud-e-rgb),.34); border-radius: 8px;
+      color: rgba(255,255,255,.82); font-family: 'DM Sans', sans-serif; font-size: 10px;
       font-weight: 300; letter-spacing: .16em; text-transform: uppercase;
       padding: 0 14px; cursor: pointer; outline: none;
       backdrop-filter: none;
       transition: background .25s ease, border-color .25s ease, color var(--trans), box-shadow .25s ease, transform .2s ease;
     }
     .theme-toggle:hover,
-    .theme-picker.open .theme-toggle {
+    .theme-picker.open .theme-toggle,
+    .download-toggle:hover,
+    .download-picker.open .download-toggle {
       transform: translateY(-1px);
-      border-color: rgba(255,255,255,.34);
+      border-color: rgba(var(--cloud-e-rgb),.58);
       color: #fff;
-      background: rgba(255,255,255,.06);
+      background: rgba(var(--cloud-e-rgb),.1);
     }
-    .theme-toggle:focus-visible {
+    .theme-toggle:focus-visible,
+    .download-toggle:focus-visible {
       border-color: rgba(255,255,255,.68);
       box-shadow: 0 0 0 3px rgba(255,255,255,.12);
+    }
+    .download-toggle {
+      min-width: 126px;
     }
     .theme-toggle-dot {
       width: 9px; height: 9px; border-radius: 50%;
@@ -245,10 +435,10 @@
       transform: translate(-50%, 8px) scale(.98);
       display: flex; gap: 10px; align-items: center; justify-content: center;
       padding: 10px 12px;
-      border: 1px solid rgba(255,255,255,.16);
+      border: 1px solid rgba(var(--cloud-e-rgb),.24);
       border-radius: 12px;
-      background: rgba(var(--bg-a-rgb), .72);
-      box-shadow: 0 18px 46px rgba(0,0,0,.22), inset 0 1px 0 rgba(var(--cloud-e-rgb),.1);
+      background: rgba(var(--bg-a-rgb), .84);
+      box-shadow: 0 18px 46px rgba(0,0,0,.26), inset 0 1px 0 rgba(var(--cloud-e-rgb),.16), 0 0 34px rgba(var(--cloud-d-rgb),.12);
       backdrop-filter: none;
       opacity: 0; visibility: hidden; pointer-events: none;
       transition: opacity .2s ease, transform .2s ease, visibility .2s;
@@ -256,6 +446,66 @@
     .theme-picker.open .theme-popover {
       opacity: 1; visibility: visible; pointer-events: all;
       transform: translate(-50%, 0) scale(1);
+    }
+
+    .download-menu {
+      position: absolute; left: 50%; bottom: calc(100% + 10px);
+      transform: translate(-50%, 8px) scale(.98);
+      width: 218px;
+      display: flex; flex-direction: column; gap: 4px;
+      padding: 8px;
+      border: 1px solid rgba(var(--cloud-e-rgb),.24);
+      border-radius: 12px;
+      background: rgba(var(--bg-a-rgb), .9);
+      box-shadow: 0 18px 46px rgba(0,0,0,.28), inset 0 1px 0 rgba(var(--cloud-e-rgb),.16), 0 0 34px rgba(var(--cloud-d-rgb),.12);
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease, visibility .2s;
+    }
+    .download-picker.open .download-menu {
+      opacity: 1; visibility: visible; pointer-events: all;
+      transform: translate(-50%, 0) scale(1);
+    }
+    .download-option {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      min-height: 40px;
+      padding: 9px 10px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: var(--tx);
+      text-decoration: none;
+      transition: background .18s ease, border-color .18s ease, color .18s ease, opacity .18s ease;
+    }
+    .download-option:hover,
+    .download-option:focus-visible {
+      border-color: rgba(var(--cloud-e-rgb), .24);
+      background: rgba(var(--cloud-e-rgb), .1);
+      outline: none;
+    }
+    .download-option-title {
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .download-option-meta {
+      color: var(--muted);
+      font-size: 9px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .download-option.unavailable,
+    .download-option[aria-disabled="true"] {
+      opacity: .45;
+      cursor: not-allowed;
+      filter: grayscale(1);
+    }
+    .download-option.unavailable:hover,
+    .download-option[aria-disabled="true"]:hover,
+    .download-option.unavailable:focus-visible,
+    .download-option[aria-disabled="true"]:focus-visible {
+      border-color: transparent;
+      background: transparent;
     }
 
     .theme-swatch {
@@ -276,6 +526,45 @@
       border-color: rgba(255,255,255,.88);
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.12), 0 0 0 3px rgba(255,255,255,.12), 0 0 18px var(--swatch-mid);
     }
+    .theme-swatch.locked,
+    .theme-swatch:disabled {
+      position: relative;
+      cursor: not-allowed;
+      opacity: .46;
+      filter: grayscale(1) saturate(.18);
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04), 0 6px 14px rgba(0,0,0,.14);
+    }
+    .theme-swatch.locked:hover,
+    .theme-swatch:disabled:hover {
+      transform: none;
+      border-color: rgba(255,255,255,.22);
+    }
+    .theme-swatch.locked::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 6px;
+      width: 8px;
+      height: 7px;
+      border: 1px solid rgba(255,255,255,.7);
+      border-bottom: none;
+      border-radius: 5px 5px 0 0;
+      transform: translateX(-50%);
+      z-index: 1;
+    }
+    .theme-swatch.locked::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 12px;
+      width: 12px;
+      height: 8px;
+      border-radius: 3px;
+      background: rgba(255,255,255,.72);
+      transform: translateX(-50%);
+      z-index: 1;
+    }
 
     .main-btn,
     .ghost-btn {
@@ -289,12 +578,13 @@
     }
 
     .main-btn {
-      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.3);
+      background: linear-gradient(135deg, rgba(var(--cloud-e-rgb),.28), rgba(var(--cloud-d-rgb),.18));
+      border: 1px solid rgba(var(--cloud-e-rgb),.58);
       color: #fff; font-size: 12px; font-weight: 400; letter-spacing: .2em;
       padding: 0 24px;
-      box-shadow: 0 12px 30px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.14);
+      box-shadow: 0 14px 34px rgba(0,0,0,.26), 0 0 28px rgba(var(--cloud-d-rgb),.18), inset 0 1px 0 rgba(255,255,255,.2);
     }
-    .main-btn:hover { transform: translateY(-1px); background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.48); }
+    .main-btn:hover { transform: translateY(-1px); background: linear-gradient(135deg, rgba(var(--cloud-e-rgb),.36), rgba(var(--cloud-d-rgb),.24)); border-color: rgba(var(--cloud-e-rgb),.78); }
     .main-btn:focus-visible {
       border-color: rgba(255,255,255,.72);
       box-shadow: 0 12px 30px rgba(0,0,0,.22), 0 0 0 3px rgba(255,255,255,.14), inset 0 1px 0 rgba(255,255,255,.14);
@@ -302,14 +592,14 @@
     .main-btn:active { transform: scale(.97); }
 
     .ghost-btn {
-      background: rgba(0,0,0,.08); border: 1px solid var(--border);
-      color: rgba(255,255,255,.74); font-size: 11px; font-weight: 300; letter-spacing: .16em;
+      background: rgba(var(--bg-a-rgb),.2); border: 1px solid rgba(var(--cloud-e-rgb),.34);
+      color: rgba(255,255,255,.82); font-size: 11px; font-weight: 300; letter-spacing: .16em;
       padding: 0 16px;
     }
     .ghost-btn:hover {
       transform: translateY(-1px);
-      background: rgba(255,255,255,.07);
-      border-color: rgba(255,255,255,.34);
+      background: rgba(var(--cloud-e-rgb),.1);
+      border-color: rgba(var(--cloud-e-rgb),.58);
       color: #fff;
     }
     .ghost-btn:focus-visible {
@@ -335,38 +625,45 @@
       color: var(--muted); transition: color var(--trans);
     }
 
-    /* ── LOG TOGGLE BUTTON ── */
-    .log-toggle {
+    /* ── TOOLBAR TABS ── */
+    .toolbar-tabs {
       position: absolute; top: var(--top-y); right: var(--page-x);
-      min-width: 148px; height: 36px;
-      background: rgba(var(--bg-a-rgb), .06); border: 1px solid rgba(var(--cloud-e-rgb), .34);
-      border-radius: 8px; color: rgba(255,255,255,.8);
-      font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 300;
-      letter-spacing: .2em; text-transform: uppercase; padding: 0 20px;
-      cursor: pointer; outline: none; z-index: 100;
-      box-shadow: none;
+      display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+      z-index: 100;
       transform: translateX(var(--log-shift)) translateY(var(--raise));
-      transition: transform .24s cubic-bezier(.2,.8,.2,1), background .18s ease, border-color .18s ease, color .18s ease, opacity .18s ease;
-      display: flex; align-items: center; justify-content: center;
-      text-align: center;
+      transition: transform .24s cubic-bezier(.2,.8,.2,1);
       will-change: transform;
     }
-    .log-toggle:hover {
+    .toolbar-tab {
+      min-width: 132px; height: 36px;
+      background: rgba(var(--bg-a-rgb), .16); border: 1px solid rgba(var(--cloud-e-rgb), .4);
+      border-radius: 8px; color: rgba(255,255,255,.86);
+      font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 300;
+      letter-spacing: .2em; text-transform: uppercase; padding: 0 20px;
+      cursor: pointer; outline: none;
+      box-shadow: none;
+      transition: background .18s ease, border-color .18s ease, color .18s ease, opacity .18s ease;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+    }
+    .toolbar-tabs:hover {
       --raise: -1px;
+    }
+    .toolbar-tab:hover {
       border-color: rgba(var(--cloud-e-rgb), .54);
       color: #fff;
-      background: rgba(var(--cloud-e-rgb), .08);
+      background: rgba(var(--cloud-e-rgb), .12);
     }
+    .toolbar-tab.active,
     .log-toggle.has-data {
       border-color: rgba(var(--cloud-e-rgb), .48);
       background: rgba(var(--cloud-d-rgb), .07);
     }
-    .log-toggle:focus-visible {
+    .toolbar-tab:focus-visible {
       border-color: rgba(255,255,255,.62);
       box-shadow: 0 0 0 3px rgba(255,255,255,.11);
     }
-    body.sidebar-open .log-toggle { right: var(--page-x); }
-    .log-toggle-label {
+    .toolbar-tab-label {
       text-align: center;
     }
 
@@ -374,17 +671,17 @@
       position: absolute; top: var(--top-y); left: var(--page-x);
       width: 36px; height: 36px;
       display: flex; align-items: center; justify-content: center;
-      background: rgba(0,0,0,.08); border: 1px solid var(--border);
-      border-radius: 8px; color: rgba(255,255,255,.72);
+      background: rgba(var(--bg-a-rgb),.2); border: 1px solid rgba(var(--cloud-e-rgb),.34);
+      border-radius: 8px; color: rgba(255,255,255,.8);
       cursor: pointer; outline: none; z-index: 100;
       backdrop-filter: none;
       transition: transform .2s ease, background .25s ease, border-color var(--trans), color var(--trans), box-shadow .25s ease;
     }
     .fullscreen-toggle:hover {
       transform: translateY(-1px);
-      border-color: rgba(255,255,255,.34);
+      border-color: rgba(var(--cloud-e-rgb),.58);
       color: #fff;
-      background: rgba(255,255,255,.06);
+      background: rgba(var(--cloud-e-rgb),.1);
     }
     .fullscreen-toggle:focus-visible {
       border-color: rgba(255,255,255,.62);
@@ -410,8 +707,8 @@
       position: absolute; top: var(--top-y); left: calc(var(--page-x) + 44px);
       min-width: 36px; height: 36px;
       display: flex; align-items: center; justify-content: center; gap: 8px;
-      background: rgba(0,0,0,.08); border: 1px solid var(--border);
-      border-radius: 8px; color: rgba(255,255,255,.72);
+      background: rgba(var(--bg-a-rgb),.2); border: 1px solid rgba(var(--cloud-e-rgb),.34);
+      border-radius: 8px; color: rgba(255,255,255,.8);
       cursor: pointer; outline: none; z-index: 100;
       backdrop-filter: none;
       padding: 0 10px;
@@ -419,9 +716,9 @@
     }
     .popout-toggle:hover {
       transform: translateY(-1px);
-      border-color: rgba(255,255,255,.34);
+      border-color: rgba(var(--cloud-e-rgb),.58);
       color: #fff;
-      background: rgba(255,255,255,.06);
+      background: rgba(var(--cloud-e-rgb),.1);
     }
     .popout-toggle:focus-visible {
       border-color: rgba(255,255,255,.62);
@@ -467,12 +764,41 @@
       white-space: nowrap;
     }
 
+    .zen-toggle {
+      position: absolute; top: var(--top-y); left: calc(var(--page-x) + 88px);
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(var(--bg-a-rgb),.2); border: 1px solid rgba(var(--cloud-e-rgb),.34);
+      border-radius: 8px; color: rgba(255,255,255,.8);
+      cursor: pointer; outline: none; z-index: 100;
+      backdrop-filter: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: .08em;
+      transition: transform .2s ease, background .25s ease, border-color var(--trans), color var(--trans), box-shadow .25s ease;
+    }
+    .zen-toggle:hover {
+      transform: translateY(-1px);
+      border-color: rgba(var(--cloud-e-rgb),.58);
+      color: #fff;
+      background: rgba(var(--cloud-e-rgb),.1);
+    }
+    .zen-toggle.active {
+      border-color: rgba(var(--cloud-e-rgb), .62);
+      background: rgba(var(--cloud-d-rgb), .12);
+    }
+    .zen-toggle:focus-visible {
+      border-color: rgba(255,255,255,.62);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.11);
+    }
+
     /* ── SIDEBAR ── */
     .sidebar {
-      position: fixed; top: 0; right: 0; width: var(--sidebar-w); height: 100%;
+      position: fixed; top: var(--chrome-h); right: 0; width: var(--sidebar-w); height: calc(100% - var(--chrome-h));
       background:
-        linear-gradient(180deg, rgba(var(--bg-a-rgb), .9), rgba(var(--bg-b-rgb), .78)),
-        radial-gradient(circle at 18% 8%, rgba(var(--cloud-e-rgb), .14), transparent 46%);
+        linear-gradient(180deg, rgba(var(--bg-a-rgb), .94), rgba(var(--bg-b-rgb), .82)),
+        radial-gradient(circle at 18% 8%, rgba(var(--cloud-e-rgb), .2), transparent 46%);
       backdrop-filter: none;
       border-left: 1px solid var(--panel-line);
       transform: translateX(100%);
@@ -480,7 +806,7 @@
       z-index: 200;
       display: flex; flex-direction: column;
       overflow: hidden;
-      box-shadow: -16px 0 46px rgba(0,0,0,.18);
+      box-shadow: -16px 0 48px rgba(0,0,0,.28);
       will-change: transform;
     }
     body.sidebar-open .sidebar { transform: translateX(0); }
@@ -489,6 +815,7 @@
       padding: 32px 28px 20px;
       border-bottom: 1px solid var(--panel-line);
       flex-shrink: 0;
+      position: relative;
     }
 
     .sidebar-title {
@@ -509,7 +836,7 @@
       border-bottom: 1px solid var(--panel-line); flex-shrink: 0;
     }
     .metric-cell {
-      background: rgba(var(--bg-a-rgb), .46); padding: 14px 16px; text-align: center;
+      background: rgba(var(--bg-a-rgb), .56); padding: 14px 16px; text-align: center;
     }
     .metric-val {
       font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 300;
@@ -533,10 +860,10 @@
     .streak-pips { display: flex; gap: 5px; }
     .streak-pip {
       width: 8px; height: 8px; border-radius: 50%;
-      border: 1px solid rgba(255,255,255,.2);
+      border: 1px solid rgba(255,255,255,.28);
       background: transparent; transition: background .4s, border-color var(--trans);
     }
-    .streak-pip.lit { background: var(--cloud-e); border-color: var(--cloud-e); }
+    .streak-pip.lit { background: var(--cloud-e); border-color: var(--cloud-e); box-shadow: 0 0 12px rgba(var(--cloud-e-rgb),.58); }
 
     /* ── SESSION LOG ── */
     .log-section { flex: 1; overflow-y: auto; padding: 0 0 20px; }
@@ -600,7 +927,7 @@
     }
     .log-mode-badge.work,
     .log-mode-badge.short,
-    .log-mode-badge.long  { background: rgba(var(--cloud-d-rgb), .16); color: var(--cloud-e); }
+    .log-mode-badge.long  { background: rgba(var(--cloud-d-rgb), .22); color: var(--cloud-e); }
     .log-status {
       font-size: 8px; letter-spacing: .14em; text-transform: uppercase;
       color: var(--muted); opacity: .76;
@@ -661,6 +988,210 @@
       color: var(--muted);
     }
 
+    /* ── SETTINGS PANEL ── */
+    .settings-panel {
+      position: fixed; top: var(--chrome-h); right: 0; width: var(--sidebar-w); height: calc(100% - var(--chrome-h));
+      background:
+        linear-gradient(180deg, rgba(var(--bg-a-rgb), .95), rgba(var(--bg-b-rgb), .84)),
+        radial-gradient(circle at 22% 6%, rgba(var(--cloud-e-rgb), .22), transparent 48%);
+      border-left: 1px solid var(--panel-line);
+      transform: translateX(100%);
+      transition: transform .34s cubic-bezier(.2,.8,.2,1), background .75s ease, border-color .75s ease;
+      z-index: 205;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      box-shadow: -16px 0 48px rgba(0,0,0,.3);
+      will-change: transform;
+    }
+    body.settings-open .settings-panel { transform: translateX(0); }
+
+    .settings-header {
+      padding: 32px 28px 20px;
+      border-bottom: 1px solid var(--panel-line);
+      flex-shrink: 0;
+      position: relative;
+    }
+    .settings-title {
+      font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 300;
+      letter-spacing: .08em; color: var(--tx); margin-bottom: 4px;
+    }
+    .settings-subtitle {
+      font-size: 10px; font-weight: 200; letter-spacing: .2em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .panel-close {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid rgba(var(--cloud-e-rgb), .28);
+      border-radius: 8px;
+      background: rgba(var(--bg-a-rgb), .18);
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      transition: background .18s ease, border-color .18s ease, color .18s ease;
+    }
+    .panel-close:hover {
+      border-color: rgba(var(--cloud-e-rgb), .5);
+      background: rgba(var(--cloud-e-rgb), .1);
+      color: var(--tx);
+    }
+    .panel-close:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(255,255,255,.11);
+    }
+    .settings-body {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 20px;
+    }
+    .settings-body::-webkit-scrollbar { width: 3px; }
+    .settings-body::-webkit-scrollbar-track { background: transparent; }
+    .settings-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 999px; }
+    .settings-section {
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--panel-line);
+    }
+    .settings-section-title {
+      font-size: 9px; font-weight: 300; letter-spacing: .22em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .settings-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 12px 0;
+    }
+    .settings-row + .settings-row { border-top: 1px solid rgba(var(--cloud-e-rgb), .12); }
+    .settings-row-main { min-width: 0; }
+    .settings-row-title {
+      display: block;
+      font-size: 12px; font-weight: 300; letter-spacing: .08em;
+      color: var(--tx);
+    }
+    .settings-row-copy {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    .settings-switch {
+      position: relative;
+      width: 44px; height: 24px;
+      flex: 0 0 44px;
+    }
+    .settings-switch input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .settings-switch-track {
+      position: absolute; inset: 0;
+      border-radius: 999px;
+      border: 1px solid rgba(var(--cloud-e-rgb), .32);
+      background: rgba(var(--bg-a-rgb), .34);
+      transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    .settings-switch-track::after {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      left: 2px; top: 2px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.82);
+      box-shadow: 0 4px 12px rgba(0,0,0,.2);
+      transition: transform .18s ease, background .18s ease;
+    }
+    .settings-switch input:checked + .settings-switch-track {
+      border-color: rgba(var(--cloud-e-rgb), .52);
+      background: rgba(var(--cloud-d-rgb), .3);
+      box-shadow: 0 0 22px rgba(var(--cloud-d-rgb), .12);
+    }
+    .settings-switch input:checked + .settings-switch-track::after {
+      transform: translateX(20px);
+      background: #fff;
+    }
+    .settings-switch input:focus-visible + .settings-switch-track {
+      box-shadow: 0 0 0 3px rgba(255,255,255,.11);
+    }
+    .update-status-card {
+      margin-top: 10px;
+      padding: 14px;
+      border: 1px solid var(--panel-line);
+      border-radius: 8px;
+      background: rgba(var(--bg-a-rgb), .34);
+    }
+    .update-status-title {
+      color: var(--tx);
+      font-size: 12px;
+      letter-spacing: .08em;
+      margin-bottom: 5px;
+    }
+    .update-status-detail {
+      min-height: 18px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    .settings-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .settings-action-btn {
+      flex: 1;
+      background: transparent; border: 1px solid var(--panel-line);
+      border-radius: 8px; color: var(--tx); font-family: 'DM Sans', sans-serif;
+      font-size: 10px; font-weight: 300; letter-spacing: .14em; text-transform: uppercase;
+      padding: 10px 8px; cursor: pointer; outline: none;
+      transition: background .2s ease, border-color var(--trans), color var(--trans), opacity .18s ease;
+    }
+    .settings-action-btn:hover {
+      border-color: rgba(255,255,255,.28);
+      background: rgba(var(--cloud-e-rgb), .1);
+    }
+    .settings-action-btn:disabled {
+      opacity: .42;
+      cursor: default;
+      background: transparent;
+    }
+    .settings-action-btn[hidden] { display: none; }
+    .version-history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .version-entry {
+      border-left: 1px solid rgba(var(--cloud-e-rgb), .28);
+      padding-left: 14px;
+    }
+    .version-entry-title {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+      color: var(--tx);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 16px;
+      letter-spacing: .06em;
+    }
+    .version-entry-date {
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 9px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .version-entry ul {
+      margin-top: 8px;
+      padding-left: 14px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
     /* ── NAME CURRENT SESSION ── */
     .name-current {
       padding: 12px 28px; border-bottom: 1px solid var(--panel-line); flex-shrink: 0;
@@ -689,7 +1220,8 @@
         --controls-bottom: 28px;
         --sidebar-w: min(320px, 90vw);
       }
-      body.sidebar-open {
+      body.sidebar-open,
+      body.settings-open {
         --main-shift: 0px;
         --log-shift: 0px;
       }
@@ -701,8 +1233,16 @@
         width: min(88vw, 330px);
         margin-bottom: -4px;
       }
-      .log-toggle {
-        min-width: 128px;
+      .wordmark {
+        top: 70px;
+        font-size: 12px;
+        letter-spacing: .28em;
+      }
+      .toolbar-tabs {
+        gap: 6px;
+      }
+      .toolbar-tab {
+        min-width: 108px;
         padding: 8px 14px;
         font-size: 9px;
         letter-spacing: .15em;
@@ -711,19 +1251,19 @@
         width: 34px;
         height: 34px;
       }
-      body.sidebar-open #canvas { width: 100%; }
-      body.sidebar-open .scene {
+      body.sidebar-open #canvas,
+      body.settings-open #canvas { width: 100%; }
+      body.sidebar-open .scene,
+      body.settings-open .scene {
         right: 0;
         opacity: .24;
       }
-      body.sidebar-open .controls {
+      body.sidebar-open .controls,
+      body.settings-open .controls {
         left: 50%;
         transform: translateX(-50%);
         opacity: 0;
         pointer-events: none;
-      }
-      body.sidebar-open .log-toggle {
-        right: var(--page-x);
       }
       .controls {
         gap: 16px;
@@ -748,6 +1288,18 @@
         min-width: 104px;
         font-size: 9px;
         letter-spacing: .13em;
+      }
+      .control-tools {
+        gap: 8px;
+      }
+      .download-toggle {
+        height: 30px;
+        min-width: 112px;
+        font-size: 9px;
+        letter-spacing: .12em;
+      }
+      .download-menu {
+        width: min(76vw, 218px);
       }
       .theme-swatch {
         width: 26px;
@@ -791,6 +1343,11 @@
         min-width: 98px;
         font-size: 8px;
       }
+      .download-toggle {
+        height: 29px;
+        min-width: 104px;
+        font-size: 8px;
+      }
       .theme-popover {
         gap: 8px;
         padding: 9px 10px;
@@ -813,8 +1370,10 @@
         --scene-bottom: 28px;
         --controls-bottom: 28px;
       }
-      body.sidebar-open {
+      body.sidebar-open,
+      body.settings-open {
         --main-shift: 0px;
+        --log-shift: 0px;
       }
       .scene {
         right: 46%;
@@ -865,6 +1424,11 @@
       .theme-toggle {
         height: 29px;
         min-width: 98px;
+        font-size: 8px;
+      }
+      .download-toggle {
+        height: 29px;
+        min-width: 104px;
         font-size: 8px;
       }
       .session-meter { gap: 6px; }
@@ -924,28 +1488,78 @@
     }
 
     body.popout-mode {
-      min-width: 320px;
-      min-height: 420px;
+      --chrome-h: 0px;
+      --top-y: 16px;
+      --scene-top: 0px;
+      --scene-bottom: 0px;
+      --controls-bottom: 0px;
+      min-width: 280px;
+      min-height: 280px;
+      -webkit-app-region: drag;
     }
+    body.popout-mode .app-chrome,
     body.popout-mode .fullscreen-toggle,
-    body.popout-mode .log-toggle,
-    body.popout-mode .sidebar {
+    body.popout-mode .toolbar-tabs,
+    body.popout-mode .settings-panel,
+    body.popout-mode .sidebar,
+    body.popout-mode .zen-toggle,
+    body.popout-mode .controls,
+    body.popout-mode .wordmark,
+    body.popout-mode .mode-label,
+    body.popout-mode .session-name-display,
+    body.popout-mode .session-done-msg {
       display: none;
+    }
+    body.popout-mode .scene {
+      right: 0 !important;
+      padding: 18px 16px 22px;
+      justify-content: center;
+      opacity: 1;
+      transform: none;
+    }
+    body.popout-mode .time-wrap {
+      gap: 10px;
+      transform: translateY(-2px);
+    }
+    body.popout-mode .time-gauge {
+      width: 304px;
+      max-width: calc(100vw - 36px);
+      margin-bottom: 0;
+      opacity: .98;
+      transform: none;
+    }
+    body.popout-mode .time-display {
+      font-size: 98px;
+      line-height: 1.02;
+      letter-spacing: .025em;
+      max-width: calc(100vw - 24px);
+      margin-bottom: 0;
     }
     body.popout-mode .popout-toggle {
       left: auto;
-      right: 18px;
-      top: 18px;
-      width: auto;
-      min-width: 92px;
-      height: 34px;
-      padding: 0 12px;
+      top: auto;
+      right: 12px;
+      bottom: 12px;
+      width: 36px;
+      min-width: 0;
+      height: 36px;
+      padding: 0;
       background: rgba(var(--bg-a-rgb), .22);
       border-color: rgba(var(--cloud-e-rgb), .34);
+      opacity: .34;
       backdrop-filter: none;
+      -webkit-app-region: no-drag;
     }
-    body.popout-mode .popout-label {
-      display: inline;
+    body.popout-mode .popout-toggle:hover,
+    body.popout-mode .popout-toggle:focus-visible {
+      opacity: 1;
+    }
+    body.popout-mode .popout-label,
+    body.popout-mode .control-tools,
+    body.popout-mode .theme-picker,
+    body.popout-mode .download-picker,
+    body.popout-mode .session-meter {
+      display: none;
     }
     body.popout-mode .popout-icon::after {
       top: 8px;
@@ -959,88 +1573,117 @@
       top: 10px;
       right: 6px;
     }
-    body.popout-mode .scene {
+    html.desktop-app .download-picker {
+      display: none;
+    }
+    @media (min-width: 390px) and (min-height: 380px) {
+      body.popout-mode .time-gauge {
+        width: 332px;
+      }
+      body.popout-mode .time-display {
+        font-size: 108px;
+      }
+    }
+    @media (max-width: 330px), (max-height: 320px) {
+      body.popout-mode .scene {
+        padding: 14px 12px 18px;
+      }
+      body.popout-mode .time-gauge {
+        width: 260px;
+        max-width: calc(100vw - 28px);
+      }
+      body.popout-mode .time-display {
+        font-size: 82px;
+      }
+      body.popout-mode .popout-toggle {
+        right: 10px;
+        bottom: 10px;
+        width: 32px;
+        height: 32px;
+      }
+    }
+
+    body.zen-mode {
+      --main-shift: 0px;
+      --log-shift: 0px;
+      --scene-top: 0px;
+      --scene-bottom: 0px;
+    }
+    html.desktop-app body.zen-mode {
+      --chrome-h: 0px;
+      --top-y: 32px;
+    }
+    body.zen-mode .app-chrome,
+    body.zen-mode .fullscreen-toggle,
+    body.zen-mode .popout-toggle,
+    body.zen-mode .zen-toggle,
+    body.zen-mode .toolbar-tabs,
+    body.zen-mode .controls,
+    body.zen-mode .sidebar,
+    body.zen-mode .settings-panel {
+      display: none;
+    }
+    body.zen-mode .wordmark,
+    body.zen-mode .mode-label,
+    body.zen-mode .session-name-display,
+    body.zen-mode .session-done-msg {
+      display: none;
+    }
+    body.zen-mode .scene {
       right: 0 !important;
-      padding: 78px 18px 144px;
+      padding: 0 18px;
       justify-content: center;
       opacity: 1;
       transform: none;
     }
-    body.popout-mode .wordmark {
-      top: 24px;
-      left: 20px;
+    body.zen-mode .time-wrap {
+      gap: clamp(10px, 2vw, 18px);
+      transform: translateY(-1vh);
+    }
+    body.zen-mode .time-gauge {
+      width: clamp(300px, 52vw, 620px);
+      margin-bottom: 0;
+      opacity: .98;
       transform: none;
-      font-size: 13px;
-      letter-spacing: .28em;
     }
-    body.popout-mode .time-wrap {
-      gap: 10px;
-    }
-    body.popout-mode .time-gauge {
-      width: min(84vw, 305px);
-      margin-bottom: 2px;
-      transform: translateY(8px);
-    }
-    body.popout-mode .time-display {
-      font-size: clamp(82px, 28vw, 130px);
-      line-height: 1.02;
-      letter-spacing: .015em;
+    body.zen-mode .time-display {
+      font-size: clamp(110px, 20vw, 282px);
       max-width: 96vw;
-      margin-bottom: 8px;
+      margin-bottom: 0;
     }
-    body.popout-mode .mode-label {
-      font-size: 10px;
-      letter-spacing: .24em;
-      line-height: 1.4;
+    body.zen-mode.popout-mode .scene {
+      padding: 18px 16px 22px;
     }
-    body.popout-mode .session-name-display {
-      max-width: min(82vw, 300px);
+    body.zen-mode.popout-mode .time-gauge {
+      width: 304px;
+      max-width: calc(100vw - 36px);
     }
-    body.popout-mode .controls {
+    body.zen-mode.popout-mode .time-display {
+      font-size: 98px;
+    }
+    body.zen-mode.popout-mode .popout-toggle {
       display: flex;
-      left: 50%;
-      bottom: 18px;
-      width: min(90vw, 360px);
-      gap: 10px;
-      transform: translateX(-50%);
-      opacity: 1;
-      pointer-events: all;
     }
-    body.popout-mode .mode-pills,
-    body.popout-mode .btn-row {
-      width: 100%;
-    }
-    body.popout-mode .mode-pills {
-      gap: 6px;
-    }
-    body.popout-mode .btn-row {
-      gap: 8px;
-    }
-    body.popout-mode .pill {
-      height: 30px;
-      padding: 0 6px;
-      font-size: 8px;
-      letter-spacing: .07em;
-    }
-    body.popout-mode .main-btn,
-    body.popout-mode .ghost-btn {
-      height: 36px;
-      font-size: 10px;
-      letter-spacing: .11em;
-    }
-    body.popout-mode .main-btn {
-      padding: 0 18px;
-    }
-    body.popout-mode .ghost-btn {
-      padding: 0 10px;
-    }
-    body.popout-mode .theme-picker,
-    body.popout-mode .session-meter {
-      display: none;
+    @media (max-width: 560px) {
+      body.zen-mode .time-gauge {
+        width: min(90vw, 390px);
+      }
+      body.zen-mode .time-display {
+        font-size: clamp(78px, 21vw, 112px);
+      }
     }
   </style>
 </head>
 <body>
+
+<header class="app-chrome" id="appChrome" aria-hidden="true">
+  <div class="app-chrome-title">
+    <span class="app-chrome-mark" aria-hidden="true"></span>
+    <span id="appChromeTitle">Nimbus</span>
+    <span class="app-chrome-version" id="appChromeVersion">1.2.6</span>
+  </div>
+  <div class="app-chrome-status" id="appChromeStatus">Focus session</div>
+</header>
 
 <canvas id="canvas"></canvas>
 
@@ -1053,7 +1696,7 @@
       <g id="gaugeTicks"></g>
       <circle class="gauge-marker" id="gaugeMarker" r="3"></circle>
     </svg>
-    <div class="time-display" id="timeDisplay">25:00</div>
+    <div class="time-display" id="timeDisplay" aria-label="25 minutes 0 seconds"><span class="time-segment"><span class="time-value">25</span><span class="time-unit">M</span></span><span class="time-segment"><span class="time-value">00</span><span class="time-unit">S</span></span></div>
     <div class="mode-label" id="modeLabel">Focus session</div>
     <div class="session-name-display" id="sessionNameDisplay"></div>
     <div class="session-done-msg" id="doneMsg">Session complete — breathe</div>
@@ -1071,9 +1714,16 @@
   <span class="popout-label">Pop in</span>
 </button>
 
-<button class="log-toggle" id="logToggle" title="Session log (L)" aria-controls="sidebar" aria-expanded="false">
-  <span class="log-toggle-label">Session log</span>
-</button>
+<button class="zen-toggle" id="zenToggle" aria-label="Enter Zen mode" aria-pressed="false" title="Zen mode (Z)">Z</button>
+
+<div class="toolbar-tabs" role="tablist" aria-label="Nimbus panels">
+  <button class="toolbar-tab log-toggle" id="logToggle" title="Session log (L)" aria-controls="sidebar" aria-expanded="false">
+    <span class="toolbar-tab-label">Session log</span>
+  </button>
+  <button class="toolbar-tab settings-toggle" id="settingsToggle" title="Settings (,)" aria-controls="settingsPanel" aria-expanded="false">
+    <span class="toolbar-tab-label">Settings</span>
+  </button>
+</div>
 
 <div class="controls">
   <div class="mode-pills">
@@ -1083,20 +1733,46 @@
   </div>
   <div class="btn-row">
     <button class="ghost-btn" id="resetBtn" title="Reset (R)">Reset</button>
-    <button class="main-btn" id="playBtn" title="Begin / pause (Space)">Begin</button>
-    <button class="ghost-btn" id="stopBtn" title="Clear (C)">Clear</button>
+    <button class="main-btn" id="playBtn" title="Start / pause (S)">Start</button>
+    <button class="ghost-btn" id="stopBtn" title="End (E)">End</button>
   </div>
-  <div class="theme-picker" id="themePicker">
-    <button class="theme-toggle" id="themeToggle" aria-expanded="false" aria-controls="themePopover" aria-haspopup="true" title="Theme (T)">
-      <span class="theme-toggle-dot" aria-hidden="true"></span>
-      Theme
-    </button>
-    <div class="theme-popover" id="themePopover" aria-label="Color theme" aria-hidden="true">
-      <button class="theme-swatch active" data-theme="blue" style="--swatch-hi:#8dc8f8;--swatch-mid:#4a9de8;--swatch-deep:#0e3a6e" aria-label="Blue theme" title="Blue"></button>
-      <button class="theme-swatch" data-theme="mojave" style="--swatch-hi:#ffb19a;--swatch-mid:#d95f4e;--swatch-deep:#5a1f1c" aria-label="Mojave red theme" title="Mojave red"></button>
-      <button class="theme-swatch" data-theme="everest" style="--swatch-hi:#a8ecd4;--swatch-mid:#38aa86;--swatch-deep:#123b32" aria-label="Everest green theme" title="Everest green"></button>
-      <button class="theme-swatch" data-theme="amber" style="--swatch-hi:#ffe08a;--swatch-mid:#e2a93a;--swatch-deep:#5b3a0b" aria-label="Amber theme" title="Amber"></button>
-      <button class="theme-swatch" data-theme="fission" style="--swatch-hi:#d6a7ff;--swatch-mid:#a756f5;--swatch-deep:#39215b" aria-label="Fission purple theme" title="Fission purple"></button>
+  <div class="control-tools">
+    <div class="theme-picker" id="themePicker">
+      <button class="theme-toggle" id="themeToggle" aria-expanded="false" aria-controls="themePopover" aria-haspopup="true" title="Theme (T)">
+        <span class="theme-toggle-dot" aria-hidden="true"></span>
+        Theme
+      </button>
+      <div class="theme-popover" id="themePopover" aria-label="Color theme" aria-hidden="true">
+        <button class="theme-swatch active" data-theme="blue" style="--swatch-hi:#b9f3ff;--swatch-mid:#32d3ff;--swatch-deep:#0067c8" aria-label="Blue theme" title="Blue"></button>
+        <button class="theme-swatch" data-theme="mojave" style="--swatch-hi:#ffd1c5;--swatch-mid:#ff735f;--swatch-deep:#8f1d1c" aria-label="Mojave red theme" title="Mojave red"></button>
+        <button class="theme-swatch" data-theme="everest" style="--swatch-hi:#d9fff1;--swatch-mid:#62f0bd;--swatch-deep:#007a5f" aria-label="Everest green theme" title="Everest green"></button>
+        <button class="theme-swatch" data-theme="amber" style="--swatch-hi:#fff0b8;--swatch-mid:#ffd15c;--swatch-deep:#9c5a00" aria-label="Amber theme" title="Amber"></button>
+        <button class="theme-swatch" data-theme="fission" style="--swatch-hi:#f0ccff;--swatch-mid:#d06cff;--swatch-deep:#5522a6" aria-label="Fission purple theme" title="Fission purple"></button>
+        <button class="theme-swatch locked" data-theme="blackout" style="--swatch-hi:#3a3a3a;--swatch-mid:#151515;--swatch-deep:#000000" aria-label="Black dark mode locked" title="Black dark mode locked" disabled></button>
+      </div>
+    </div>
+    <div class="download-picker" id="downloadPicker">
+      <button class="download-toggle" id="downloadToggle" aria-expanded="false" aria-controls="downloadMenu" aria-haspopup="true" title="Download Nimbus desktop app">
+        Downloads
+      </button>
+      <div class="download-menu" id="downloadMenu" aria-label="Download Nimbus" aria-hidden="true">
+        <a class="download-option unavailable" href="#" aria-disabled="true" data-download-option="ios">
+          <span class="download-option-title">iOS</span>
+          <span class="download-option-meta">Soon</span>
+        </a>
+        <a class="download-option" href="#" data-download-template="Nimbus-{version}-mac-arm64.dmg">
+          <span class="download-option-title">Apple Silicon</span>
+          <span class="download-option-meta">macOS ARM</span>
+        </a>
+        <a class="download-option" href="#" data-download-template="Nimbus-{version}-mac-x64.dmg">
+          <span class="download-option-title">Intel Mac</span>
+          <span class="download-option-meta">macOS x64</span>
+        </a>
+        <a class="download-option" href="#" data-download-template="Nimbus-Setup-{version}-x64.exe">
+          <span class="download-option-title">Windows</span>
+          <span class="download-option-meta">x64</span>
+        </a>
+      </div>
     </div>
   </div>
   <div class="session-meter">
@@ -1109,10 +1785,11 @@
 </div>
 
 <!-- ── SIDEBAR ── -->
-<aside class="sidebar" id="sidebar">
+<aside class="sidebar" id="sidebar" aria-hidden="true">
   <div class="sidebar-header">
     <div class="sidebar-title">Session log</div>
     <div class="sidebar-subtitle" id="sidebarDate"></div>
+    <button class="panel-close" id="sidebarCloseBtn" type="button" aria-label="Close session log">&times;</button>
   </div>
 
   <div class="metrics-strip">
@@ -1160,32 +1837,174 @@
   </div>
 </aside>
 
+<aside class="settings-panel" id="settingsPanel" aria-hidden="true">
+  <div class="settings-header">
+    <div class="settings-title">Settings</div>
+    <div class="settings-subtitle" id="settingsVersion">Version 1.2.6</div>
+    <button class="panel-close" id="settingsCloseBtn" type="button" aria-label="Close settings">&times;</button>
+  </div>
+
+  <div class="settings-body">
+    <section class="settings-section">
+      <div class="settings-section-title">Updates</div>
+      <label class="settings-row" for="autoUpdateOnStart">
+        <span class="settings-row-main">
+          <span class="settings-row-title">Check on launch</span>
+          <span class="settings-row-copy">Look for the newest GitHub release when Nimbus starts.</span>
+        </span>
+        <span class="settings-switch">
+          <input type="checkbox" id="autoUpdateOnStart" />
+          <span class="settings-switch-track" aria-hidden="true"></span>
+        </span>
+      </label>
+
+      <div class="update-status-card" aria-live="polite">
+        <div class="update-status-title" id="updateStatusText">Ready to check for updates.</div>
+        <div class="update-status-detail" id="updateStatusDetail">Nimbus will use published GitHub releases in packaged desktop builds.</div>
+      </div>
+
+      <div class="settings-actions">
+        <button class="settings-action-btn" id="checkUpdatesBtn">Check now</button>
+        <button class="settings-action-btn" id="installUpdateBtn" hidden>Restart</button>
+      </div>
+    </section>
+
+    <section class="settings-section">
+      <div class="settings-section-title">Display</div>
+      <label class="settings-row" for="adaptiveCanvasResize">
+        <span class="settings-row-main">
+          <span class="settings-row-title">Smooth resizing</span>
+          <span class="settings-row-copy">Reduce cloud detail while the window is being resized.</span>
+        </span>
+        <span class="settings-switch">
+          <input type="checkbox" id="adaptiveCanvasResize" />
+          <span class="settings-switch-track" aria-hidden="true"></span>
+        </span>
+      </label>
+    </section>
+
+    <section class="settings-section">
+      <div class="settings-section-title">Version history</div>
+      <div class="version-history-list" id="versionHistoryList"></div>
+    </section>
+  </div>
+</aside>
+
 <script>
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
+const desktopBridge = window.nimbusDesktop || {};
+const IS_DESKTOP = !!desktopBridge.isDesktop;
 
 const themes = {
-  blue:    { a:'#162342', b:'#08386d', c:'#1c5ea8', d:'#4a9de8', e:'#a8dcff', text:'#f1f9ff', muted:'rgba(225,244,255,0.72)', border:'rgba(190,226,255,0.32)' },
-  mojave:  { a:'#2d1111', b:'#591a18', c:'#91342c', d:'#e26a58', e:'#ffc0ae', text:'#fff2ed', muted:'rgba(255,218,207,0.74)', border:'rgba(255,176,150,0.34)' },
-  everest: { a:'#0d241d', b:'#0f3d32', c:'#1b6655', d:'#3eb991', e:'#baf5df', text:'#f1fff8', muted:'rgba(205,246,230,0.74)', border:'rgba(140,238,200,0.34)' },
-  amber:   { a:'#2b1e0b', b:'#5a3704', c:'#9a650f', d:'#ebb342', e:'#ffe79a', text:'#fff7df', muted:'rgba(255,228,166,0.74)', border:'rgba(255,198,86,0.34)' },
-  fission: { a:'#1e1430', b:'#39205e', c:'#65339b', d:'#af61ff', e:'#dfbdff', text:'#fbf4ff', muted:'rgba(228,197,255,0.74)', border:'rgba(200,140,255,0.34)' }
+  blue:    { a:'#061a3d', b:'#0067c8', c:'#0a84ff', d:'#32d3ff', e:'#b9f3ff', text:'#f6fbff', muted:'rgba(221,245,255,0.82)', border:'rgba(125,225,255,0.44)' },
+  mojave:  { a:'#2d090b', b:'#8f1d1c', c:'#d93b32', d:'#ff735f', e:'#ffd1c5', text:'#fff5f1', muted:'rgba(255,220,211,0.82)', border:'rgba(255,145,120,0.44)' },
+  everest: { a:'#04271f', b:'#007a5f', c:'#13b988', d:'#62f0bd', e:'#d9fff1', text:'#f3fff9', muted:'rgba(210,255,238,0.82)', border:'rgba(125,255,205,0.42)' },
+  amber:   { a:'#2b1703', b:'#9c5a00', c:'#e89510', d:'#ffd15c', e:'#fff0b8', text:'#fff9e8', muted:'rgba(255,234,188,0.82)', border:'rgba(255,202,88,0.44)' },
+  fission: { a:'#1d0c36', b:'#5522a6', c:'#8e45ff', d:'#d06cff', e:'#f0ccff', text:'#fcf5ff', muted:'rgba(238,207,255,0.82)', border:'rgba(216,140,255,0.44)' }
 };
 
 const root = document.documentElement;
 const STORAGE_KEY = 'nimbus-pomodoro-cloud-v2';
 const IS_POPOUT = new URLSearchParams(window.location.search).get('popout') === '1';
 const SYNC_KEY = `${STORAGE_KEY}:timer-sync`;
+const RELEASE_DOWNLOAD_BASE = 'https://github.com/murderszn/nimbus/releases/latest/download';
 const syncChannel = 'BroadcastChannel' in window ? new BroadcastChannel(SYNC_KEY) : null;
+const DEFAULT_PREFERENCES = {
+  autoUpdateOnStart: true,
+  adaptiveCanvasResize: true,
+};
+const VERSION_HISTORY = [
+  {
+    version: '1.2.6',
+    date: '2026-04-26',
+    changes: [
+      'Refined popout into a compact Zen-style overlay matching the main timer typography.'
+    ]
+  },
+  {
+    version: '1.2.5',
+    date: '2026-04-26',
+    changes: [
+      'Changed timer shortcuts to S for start and E for end.'
+    ]
+  },
+  {
+    version: '1.2.4',
+    date: '2026-04-26',
+    changes: [
+      'Added a web downloads menu for desktop client installers.'
+    ]
+  },
+  {
+    version: '1.2.3',
+    date: '2026-04-26',
+    changes: [
+      'Web popout now uses browser picture-in-picture when supported.'
+    ]
+  },
+  {
+    version: '1.2.2',
+    date: '2026-04-26',
+    changes: [
+      'Desktop title bar now shows the installed Nimbus version beside the app name.'
+    ]
+  },
+  {
+    version: '1.2.1',
+    date: '2026-04-26',
+    changes: [
+      'Added a locked black dark mode option for a future release.'
+    ]
+  },
+  {
+    version: '1.2.0',
+    date: '2026-04-26',
+    changes: [
+      'Zen mode with a centered timer and gauge-only focus view.',
+      'Z hotkey toggles Zen mode in regular and fullscreen windows.'
+    ]
+  },
+  {
+    version: '1.1.0',
+    date: '2026-04-26',
+    changes: [
+      'New Nimbus desktop icon and website metadata.',
+      'Integrated desktop titlebar for macOS and Windows.',
+      'Richer color themes and smoother cloud rendering.',
+      'Settings panel with update preferences and version history.'
+    ]
+  }
+];
 let mode = 'work', total = 25*60, remain = total, remainingMs = total*1000, running = false, tid = null, timerDeadline = 0;
 let sessions = 0, sessionTarget = 4;
 let currentTheme = 'blue';
+let preferences = { ...DEFAULT_PREFERENCES };
+let appInfo = {
+  name: 'Nimbus',
+  version: VERSION_HISTORY[0].version,
+  platform: IS_DESKTOP ? desktopBridge.platform : 'web',
+  isPackaged: false,
+  updateFeedUrl: 'https://github.com/murderszn/nimbus/releases/latest',
+};
+let updateState = {
+  state: 'idle',
+  message: 'Ready to check for updates.',
+  percent: 0,
+  canInstall: false,
+  supported: IS_DESKTOP,
+};
 let pal = themes.blue;
 let palRgb = {};
 let dissolve = 0;
 let gaugeLength = 0;
 let popoutWindow = null;
+let webPipWindow = null;
+let webPipGaugeLength = 0;
+let lastWebPipSignature = '';
 let applyingRemoteState = false;
+let zenMode = false;
+let lastRenderedClock = '';
 const handledMessageIds = new Set();
 
 const gaugeConfig = {
@@ -1195,6 +2014,18 @@ const gaugeConfig = {
   start: 210,
   end: 330,
   ticks: 49,
+};
+const MAIN_GAUGE_IDS = {
+  track: 'gaugeTrack',
+  progress: 'gaugeProgress',
+  ticks: 'gaugeTicks',
+  marker: 'gaugeMarker',
+};
+const PIP_GAUGE_IDS = {
+  track: 'pipGaugeTrack',
+  progress: 'pipGaugeProgress',
+  ticks: 'pipGaugeTicks',
+  marker: 'pipGaugeMarker',
 };
 
 // ── SESSION LOG DATA ──
@@ -1235,6 +2066,7 @@ function saveState() {
       currentStreak,
       sessions,
       currentTheme,
+      preferences,
       savedAt: new Date().toISOString(),
     }));
   } catch(e) {}
@@ -1251,6 +2083,9 @@ function loadState() {
     currentStreak = Math.max(0, Number(saved.currentStreak) || 0);
     sessions = Math.min(sessionTarget, Math.max(0, Number(saved.sessions) || 0));
     if(themes[saved.currentTheme]) currentTheme = saved.currentTheme;
+    if(saved.preferences && typeof saved.preferences === 'object') {
+      preferences = { ...DEFAULT_PREFERENCES, ...saved.preferences };
+    }
   } catch(e) {}
 }
 
@@ -1287,6 +2122,7 @@ function setTheme(name, persist = true) {
     b.setAttribute('aria-pressed', active ? 'true' : 'false');
   });
   if(persist) saveState();
+  renderWebPictureInPicture(true);
   if(!IS_POPOUT && !applyingRemoteState) broadcastTimerState();
 }
 
@@ -1297,6 +2133,29 @@ function setThemePopover(open) {
   picker.classList.toggle('open', open);
   toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
   popover.setAttribute('aria-hidden', open ? 'false' : 'true');
+}
+
+function setDownloadMenu(open) {
+  const picker = document.getElementById('downloadPicker');
+  const toggle = document.getElementById('downloadToggle');
+  const menu = document.getElementById('downloadMenu');
+  if(!picker || !toggle || !menu) return;
+  picker.classList.toggle('open', open);
+  toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+}
+
+function currentDownloadVersion() {
+  return appInfo.version || VERSION_HISTORY[0].version;
+}
+
+function renderDownloadLinks() {
+  const version = currentDownloadVersion();
+  document.querySelectorAll('[data-download-template]').forEach(link => {
+    const fileName = link.dataset.downloadTemplate.replace('{version}', version);
+    link.href = `${RELEASE_DOWNLOAD_BASE}/${encodeURIComponent(fileName)}`;
+    link.setAttribute('download', fileName);
+  });
 }
 
 function gaugePoint(angle, radius = gaugeConfig.r) {
@@ -1314,10 +2173,11 @@ function gaugeArcPath(start, end, radius = gaugeConfig.r) {
   return `M ${a.x.toFixed(2)} ${a.y.toFixed(2)} A ${radius} ${radius} 0 ${largeArc} 1 ${b.x.toFixed(2)} ${b.y.toFixed(2)}`;
 }
 
-function buildGauge() {
-  const track = document.getElementById('gaugeTrack');
-  const progress = document.getElementById('gaugeProgress');
-  const ticks = document.getElementById('gaugeTicks');
+function populateGauge(targetDocument, ids = MAIN_GAUGE_IDS) {
+  const track = targetDocument.getElementById(ids.track);
+  const progress = targetDocument.getElementById(ids.progress);
+  const ticks = targetDocument.getElementById(ids.ticks);
+  if(!track || !progress || !ticks) return 0;
   const path = gaugeArcPath(gaugeConfig.start, gaugeConfig.end);
 
   track.setAttribute('d', path);
@@ -1330,7 +2190,7 @@ function buildGauge() {
     const major = i % 6 === 0;
     const inner = gaugePoint(angle, gaugeConfig.r - (major ? 17 : 11));
     const outer = gaugePoint(angle, gaugeConfig.r + 2);
-    const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    const tick = targetDocument.createElementNS('http://www.w3.org/2000/svg', 'line');
     tick.setAttribute('x1', inner.x.toFixed(2));
     tick.setAttribute('y1', inner.y.toFixed(2));
     tick.setAttribute('x2', outer.x.toFixed(2));
@@ -1340,28 +2200,39 @@ function buildGauge() {
     ticks.appendChild(tick);
   }
 
-  gaugeLength = progress.getTotalLength();
-  progress.style.strokeDasharray = gaugeLength;
-  updateGauge();
+  const length = progress.getTotalLength();
+  progress.style.strokeDasharray = length;
+  return length;
 }
 
-function updateGauge() {
-  const progressPath = document.getElementById('gaugeProgress');
-  const marker = document.getElementById('gaugeMarker');
-  if(!gaugeLength || !progressPath || !marker) return;
+function renderGaugeProgress(targetDocument, length, ids = MAIN_GAUGE_IDS) {
+  const progressPath = targetDocument.getElementById(ids.progress);
+  const marker = targetDocument.getElementById(ids.marker);
+  const ticks = targetDocument.getElementById(ids.ticks);
+  if(!length || !progressPath || !marker) return;
 
   const remaining = Math.max(0, Math.min(1, remainingMs / (total*1000)));
-  progressPath.style.strokeDashoffset = gaugeLength * (1 - remaining);
+  progressPath.style.strokeDashoffset = length * (1 - remaining);
 
   const markerAngle = gaugeConfig.start + (gaugeConfig.end - gaugeConfig.start) * remaining;
   const markerPoint = gaugePoint(markerAngle, gaugeConfig.r);
   marker.setAttribute('cx', markerPoint.x.toFixed(2));
   marker.setAttribute('cy', markerPoint.y.toFixed(2));
 
-  document.querySelectorAll('.gauge-tick').forEach((tick, i) => {
+  if(!ticks) return;
+  ticks.querySelectorAll('.gauge-tick').forEach((tick, i) => {
     const ratio = i / (gaugeConfig.ticks - 1);
     tick.classList.toggle('active', remaining > 0 && ratio <= remaining);
   });
+}
+
+function buildGauge() {
+  gaugeLength = populateGauge(document);
+  updateGauge();
+}
+
+function updateGauge() {
+  renderGaugeProgress(document, gaugeLength);
 }
 
 function updateFullscreenButton() {
@@ -1370,6 +2241,208 @@ function updateFullscreenButton() {
   btn.classList.toggle('active', active);
   btn.setAttribute('aria-label', active ? 'Exit full screen' : 'Enter full screen');
   btn.title = active ? 'Exit full screen (F)' : 'Full screen (F)';
+}
+
+function configureDesktopChrome() {
+  if(!IS_DESKTOP) return;
+  const chrome = document.getElementById('appChrome');
+  if(chrome) chrome.setAttribute('aria-hidden', 'false');
+}
+
+function updateDesktopChrome() {
+  if(!IS_DESKTOP) return;
+  const title = document.getElementById('appChromeTitle');
+  const version = document.getElementById('appChromeVersion');
+  const status = document.getElementById('appChromeStatus');
+  const versionText = appInfo.version || VERSION_HISTORY[0].version;
+  if(title) title.textContent = 'Nimbus';
+  if(version) version.textContent = versionText;
+  if(status) {
+    const labels = {work:'Focus', short:'Short break', long:'Long break'};
+    status.textContent = `${labels[mode] || 'Timer'} ${fmtClockMs(remainingMs)}`;
+  }
+}
+
+function formatVersionDate(value) {
+  const date = new Date(value);
+  if(!Number.isFinite(date.getTime())) return '';
+  return date.toLocaleDateString([], {month:'short', day:'numeric', year:'numeric'});
+}
+
+function normalizeReleaseNotes(notes) {
+  if(Array.isArray(notes)) {
+    return notes
+      .map(note => typeof note === 'string' ? note : note?.note)
+      .filter(Boolean)
+      .map(note => String(note).replace(/<[^>]+>/g, '').trim())
+      .filter(Boolean)
+      .slice(0, 5);
+  }
+  if(typeof notes === 'string') {
+    return notes
+      .replace(/<[^>]+>/g, '')
+      .split(/\r?\n/)
+      .map(line => line.replace(/^[-*]\s*/, '').trim())
+      .filter(Boolean)
+      .slice(0, 5);
+  }
+  return [];
+}
+
+function renderVersionHistory(extraEntry = null) {
+  const list = document.getElementById('versionHistoryList');
+  if(!list) return;
+
+  const entries = extraEntry
+    ? [extraEntry, ...VERSION_HISTORY.filter(entry => entry.version !== extraEntry.version)]
+    : VERSION_HISTORY;
+
+  list.innerHTML = entries.map(entry => `
+    <article class="version-entry">
+      <div class="version-entry-title">
+        <span>v${esc(String(entry.version))}</span>
+        <span class="version-entry-date">${esc(formatVersionDate(entry.date))}</span>
+      </div>
+      <ul>
+        ${entry.changes.map(change => `<li>${esc(change)}</li>`).join('')}
+      </ul>
+    </article>
+  `).join('');
+}
+
+function renderVersionInfo() {
+  const version = appInfo.version || VERSION_HISTORY[0].version;
+  const settingsVersion = document.getElementById('settingsVersion');
+  if(settingsVersion) settingsVersion.textContent = `Version ${version}`;
+  renderDownloadLinks();
+  updateDesktopChrome();
+}
+
+function applyUpdateStatus(status = {}) {
+  updateState = { ...updateState, ...status };
+  const title = document.getElementById('updateStatusText');
+  const detail = document.getElementById('updateStatusDetail');
+  const checkBtn = document.getElementById('checkUpdatesBtn');
+  const installBtn = document.getElementById('installUpdateBtn');
+
+  const isBusy = updateState.state === 'checking' || updateState.state === 'downloading';
+  if(title) title.textContent = updateState.message || 'Ready to check for updates.';
+  if(detail) {
+    if(!IS_DESKTOP) {
+      detail.textContent = 'Update checks are available in the macOS and Windows desktop app.';
+    } else if(updateState.state === 'downloading' && Number.isFinite(Number(updateState.percent))) {
+      detail.textContent = `Downloading ${Math.round(updateState.percent)}%.`;
+    } else if(updateState.state === 'unavailable') {
+      detail.textContent = 'This build is not packaged from a GitHub release, so updater checks are disabled.';
+    } else if(updateState.error) {
+      detail.textContent = updateState.error;
+    } else if(updateState.version) {
+      detail.textContent = `Latest detected version: ${updateState.version}.`;
+    } else {
+      detail.textContent = 'Nimbus uses published GitHub releases for desktop updates.';
+    }
+  }
+  if(checkBtn) {
+    checkBtn.disabled = !IS_DESKTOP || isBusy;
+    checkBtn.textContent = isBusy ? 'Checking' : 'Check now';
+  }
+  if(installBtn) {
+    installBtn.hidden = !updateState.canInstall;
+    installBtn.disabled = !updateState.canInstall;
+  }
+
+  const releaseNotes = normalizeReleaseNotes(updateState.releaseNotes);
+  if(updateState.version && releaseNotes.length) {
+    renderVersionHistory({
+      version: updateState.version,
+      date: updateState.releaseDate || new Date().toISOString(),
+      changes: releaseNotes
+    });
+  }
+}
+
+function applyPreferenceControls() {
+  const autoUpdate = document.getElementById('autoUpdateOnStart');
+  const adaptiveResize = document.getElementById('adaptiveCanvasResize');
+  if(autoUpdate) autoUpdate.checked = !!preferences.autoUpdateOnStart;
+  if(adaptiveResize) adaptiveResize.checked = !!preferences.adaptiveCanvasResize;
+}
+
+async function syncDesktopPreferences() {
+  if(!IS_DESKTOP || !desktopBridge.setPreferences) return;
+  try {
+    const status = await desktopBridge.setPreferences({ ...preferences });
+    applyUpdateStatus(status);
+  } catch(e) {
+    applyUpdateStatus({ state: 'error', message: 'Could not save desktop update preferences.', error: e.message || String(e) });
+  }
+}
+
+function updatePreference(key, value) {
+  preferences = { ...preferences, [key]: !!value };
+  applyPreferenceControls();
+  saveState();
+  if(key === 'adaptiveCanvasResize') resize();
+  syncDesktopPreferences();
+}
+
+function setPanelState(panel, open) {
+  const isLog = panel === 'log';
+  const bodyClass = isLog ? 'sidebar-open' : 'settings-open';
+  const toggle = document.getElementById(isLog ? 'logToggle' : 'settingsToggle');
+  const target = document.getElementById(isLog ? 'sidebar' : 'settingsPanel');
+
+  document.body.classList.toggle(bodyClass, open);
+  if(toggle) {
+    toggle.classList.toggle('active', open);
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  if(target) target.setAttribute('aria-hidden', open ? 'false' : 'true');
+}
+
+function closePanels() {
+  setPanelState('log', false);
+  setPanelState('settings', false);
+}
+
+async function initializeDesktopIntegration() {
+  renderVersionInfo();
+  applyUpdateStatus(updateState);
+  if(!IS_DESKTOP || !desktopBridge.getAppInfo) return;
+
+  try {
+    const info = await desktopBridge.getAppInfo();
+    appInfo = { ...appInfo, ...info };
+    renderVersionInfo();
+    applyUpdateStatus(info.updateStatus || updateState);
+  } catch(e) {
+    applyUpdateStatus({ state: 'error', message: 'Could not load desktop app info.', error: e.message || String(e) });
+  }
+
+  if(desktopBridge.onUpdateStatus) {
+    desktopBridge.onUpdateStatus(status => applyUpdateStatus(status));
+  }
+  await syncDesktopPreferences();
+}
+
+async function checkUpdatesNow() {
+  if(!IS_DESKTOP || !desktopBridge.checkForUpdates) return;
+  applyUpdateStatus({ state: 'checking', message: 'Checking for updates...', canInstall: false });
+  try {
+    const status = await desktopBridge.checkForUpdates({ userInitiated: true });
+    applyUpdateStatus(status);
+  } catch(e) {
+    applyUpdateStatus({ state: 'error', message: 'Update check failed.', error: e.message || String(e), canInstall: false });
+  }
+}
+
+async function installReadyUpdate() {
+  if(!IS_DESKTOP || !desktopBridge.installUpdate) return;
+  try {
+    await desktopBridge.installUpdate();
+  } catch(e) {
+    applyUpdateStatus({ state: 'error', message: 'Could not start update install.', error: e.message || String(e), canInstall: false });
+  }
 }
 
 function hotkeysShouldIgnore(e) {
@@ -1435,18 +2508,55 @@ function clearCurrentCycle() {
 
 function toggleSessionLog() {
   easeCanvasDuringInteraction();
+  if(zenMode) setZenMode(false);
   setThemePopover(false);
-  document.body.classList.toggle('sidebar-open');
-  document.getElementById('logToggle').setAttribute(
-    'aria-expanded',
-    document.body.classList.contains('sidebar-open') ? 'true' : 'false'
-  );
+  setPanelState('settings', false);
+  setPanelState('log', !document.body.classList.contains('sidebar-open'));
   updateMetrics();
+}
+
+function toggleSettings() {
+  easeCanvasDuringInteraction();
+  if(zenMode) setZenMode(false);
+  setThemePopover(false);
+  setPanelState('log', false);
+  setPanelState('settings', !document.body.classList.contains('settings-open'));
+  renderVersionInfo();
+  applyUpdateStatus(updateState);
+}
+
+function setZenMode(next) {
+  zenMode = !!next;
+  if(zenMode) {
+    setThemePopover(false);
+    closePanels();
+  }
+  document.body.classList.toggle('zen-mode', zenMode);
+  const btn = document.getElementById('zenToggle');
+  if(btn) {
+    btn.classList.toggle('active', zenMode);
+    btn.setAttribute('aria-pressed', zenMode ? 'true' : 'false');
+    btn.setAttribute('aria-label', zenMode ? 'Exit Zen mode' : 'Enter Zen mode');
+    btn.title = zenMode ? 'Exit Zen mode (Z)' : 'Zen mode (Z)';
+  }
+  easeCanvasDuringInteraction();
+}
+
+function toggleZenMode() {
+  setZenMode(!zenMode);
 }
 
 function toggleThemePicker() {
   const picker = document.getElementById('themePicker');
+  setDownloadMenu(false);
   setThemePopover(!picker.classList.contains('open'));
+}
+
+function toggleDownloadMenu() {
+  const picker = document.getElementById('downloadPicker');
+  setThemePopover(false);
+  renderDownloadLinks();
+  setDownloadMenu(!picker.classList.contains('open'));
 }
 
 async function toggleFullscreen() {
@@ -1583,6 +2693,344 @@ function applyLastStoredTimerState() {
   } catch(e) {}
 }
 
+function canUseWebPictureInPicture() {
+  return !IS_DESKTOP && !IS_POPOUT && 'documentPictureInPicture' in window;
+}
+
+function webPictureInPictureOpen() {
+  return !!(webPipWindow && !webPipWindow.closed);
+}
+
+function closeWebPictureInPicture({ focusMain = true } = {}) {
+  if(webPictureInPictureOpen()) {
+    try {
+      webPipWindow.close();
+    } catch(e) {}
+  }
+  webPipWindow = null;
+  webPipGaugeLength = 0;
+  lastWebPipSignature = '';
+  if(focusMain) window.focus();
+}
+
+function buildWebPictureInPictureWindow(pipWindow) {
+  const pipDocument = pipWindow.document;
+  pipDocument.title = 'Nimbus Timer';
+  pipDocument.head.innerHTML = `
+    <title>Nimbus Timer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Sans:wght@200;300;400&display=swap" rel="stylesheet">
+    <style>
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+      body {
+        --pip-bg-a: #061a3d;
+        --pip-bg-b: #0067c8;
+        --pip-tx: #f6fbff;
+        --pip-muted: rgba(221,245,255,.82);
+        --pip-border: rgba(125,225,255,.44);
+        --pip-accent: #b9f3ff;
+        --pip-accent-rgb: 185,243,255;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 300;
+        color: var(--pip-tx);
+        background:
+          radial-gradient(circle at 50% 8%, rgba(var(--pip-accent-rgb), .18), transparent 52%),
+          linear-gradient(180deg, var(--pip-bg-b), var(--pip-bg-a) 76%);
+      }
+      .pip-shell {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px 16px 22px;
+        -webkit-app-region: drag;
+      }
+      .pip-main {
+        width: 100%;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transform: translateY(-2px);
+      }
+      .pip-gauge {
+        width: 304px;
+        max-width: calc(100vw - 36px);
+        height: auto;
+        margin-bottom: 0;
+        overflow: visible;
+        opacity: .98;
+        filter: drop-shadow(0 0 28px rgba(var(--pip-accent-rgb), .22));
+      }
+      .gauge-track {
+        fill: none;
+        stroke: var(--pip-border);
+        stroke-width: 1;
+      }
+      .gauge-progress {
+        fill: none;
+        stroke: var(--pip-accent);
+        stroke-width: 2.1;
+        stroke-linecap: round;
+        transition: stroke-dashoffset .55s linear;
+      }
+      .gauge-tick {
+        stroke: var(--pip-muted);
+        stroke-width: 1;
+        stroke-linecap: round;
+        opacity: .26;
+      }
+      .gauge-tick.major {
+        stroke-width: 1.35;
+        opacity: .36;
+      }
+      .gauge-tick.active {
+        stroke: var(--pip-accent);
+        opacity: .9;
+      }
+      .gauge-marker {
+        fill: var(--pip-accent);
+        opacity: .95;
+        filter: drop-shadow(0 0 8px var(--pip-accent));
+      }
+      .time-display {
+        display: inline-flex;
+        align-items: baseline;
+        justify-content: center;
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 98px;
+        font-weight: 300;
+        letter-spacing: .025em;
+        line-height: 1.02;
+        color: var(--pip-tx);
+        font-variant-numeric: tabular-nums;
+        max-width: calc(100vw - 24px);
+        margin-bottom: 0;
+        text-shadow: 0 0 70px rgba(var(--pip-accent-rgb), .24), 0 0 160px rgba(var(--pip-accent-rgb), .12);
+      }
+      .time-segment {
+        display: inline-flex;
+        align-items: baseline;
+        white-space: nowrap;
+      }
+      .time-segment + .time-segment {
+        margin-left: .16em;
+      }
+      .time-value {
+        display: inline-block;
+        min-width: 1.1em;
+        text-align: right;
+      }
+      .time-unit {
+        margin-left: .035em;
+        font-family: 'DM Sans', sans-serif;
+        font-size: .2em;
+        font-weight: 300;
+        letter-spacing: .16em;
+        line-height: 1;
+        text-transform: uppercase;
+        color: var(--pip-muted);
+        transform: translateY(-.12em);
+      }
+      .pip-popin {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        width: 36px;
+        height: 36px;
+        display: grid;
+        place-items: center;
+        padding: 0;
+        border: 1px solid rgba(var(--pip-accent-rgb), .34);
+        border-radius: 8px;
+        background: rgba(0,0,0,.16);
+        color: var(--pip-tx);
+        opacity: .34;
+        cursor: pointer;
+        outline: none;
+        -webkit-app-region: no-drag;
+        transition: opacity .18s ease, background .18s ease, border-color .18s ease, transform .18s ease;
+      }
+      .pip-popin:hover,
+      .pip-popin:focus-visible {
+        opacity: 1;
+        transform: translateY(-1px);
+        background: rgba(var(--pip-accent-rgb), .1);
+        border-color: rgba(var(--pip-accent-rgb), .58);
+      }
+      .pip-popin-mark {
+        position: relative;
+        width: 15px;
+        height: 15px;
+        display: block;
+      }
+      .pip-popin-mark::before {
+        content: "";
+        position: absolute;
+        inset: 2px;
+        border: 1px solid currentColor;
+        border-radius: 4px;
+        opacity: .75;
+      }
+      .pip-popin-mark::after {
+        content: "";
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 6px;
+        height: 6px;
+        border-bottom: 1px solid currentColor;
+        border-left: 1px solid currentColor;
+      }
+      .pip-popin-mark span {
+        position: absolute;
+        top: 10px;
+        right: 6px;
+        width: 7px;
+        height: 1px;
+        background: currentColor;
+        transform: rotate(-45deg);
+        transform-origin: right center;
+      }
+      @media (min-width: 390px) and (min-height: 380px) {
+        .pip-gauge {
+          width: 332px;
+        }
+        .time-display {
+          font-size: 108px;
+        }
+      }
+      @media (max-width: 330px), (max-height: 320px) {
+        .pip-shell {
+          padding: 14px 12px 18px;
+        }
+        .pip-gauge {
+          width: 260px;
+          max-width: calc(100vw - 28px);
+        }
+        .time-display {
+          font-size: 82px;
+        }
+        .pip-popin {
+          right: 10px;
+          bottom: 10px;
+          width: 32px;
+          height: 32px;
+        }
+      }
+    </style>
+  `;
+  pipDocument.body.innerHTML = `
+    <div class="pip-shell">
+      <main class="pip-main">
+        <svg class="pip-gauge" id="pipGauge" viewBox="0 0 360 118" aria-hidden="true">
+          <path class="gauge-track" id="pipGaugeTrack"></path>
+          <path class="gauge-progress" id="pipGaugeProgress"></path>
+          <g id="pipGaugeTicks"></g>
+          <circle class="gauge-marker" id="pipGaugeMarker" r="3"></circle>
+        </svg>
+        <div class="time-display" id="pipTime" aria-label="25 minutes 0 seconds">${clockDisplayMarkup('25', '00')}</div>
+      </main>
+      <button class="pip-popin" id="pipPopIn" type="button" aria-label="Pop timer back in" title="Pop in"><span class="pip-popin-mark" aria-hidden="true"><span></span></span></button>
+    </div>
+  `;
+
+  webPipGaugeLength = populateGauge(pipDocument, PIP_GAUGE_IDS);
+  pipDocument.getElementById('pipPopIn').addEventListener('click', () => closeWebPictureInPicture());
+  pipDocument.addEventListener('keydown', e => {
+    if(e.metaKey || e.ctrlKey || e.altKey) return;
+    const key = e.key.toLowerCase();
+    if(key === 's') {
+      e.preventDefault();
+      togglePlay();
+      return;
+    }
+    if(key === 'e') {
+      e.preventDefault();
+      clearCurrentCycle();
+      return;
+    }
+    if(key === 'r') {
+      e.preventDefault();
+      resetCurrentTimer();
+      return;
+    }
+    if(key === 'p' || key === 'escape') {
+      e.preventDefault();
+      closeWebPictureInPicture();
+    }
+  });
+  pipWindow.addEventListener('pagehide', () => {
+    if(webPipWindow === pipWindow) {
+      webPipWindow = null;
+      webPipGaugeLength = 0;
+      lastWebPipSignature = '';
+    }
+  });
+}
+
+async function openWebPictureInPicture() {
+  try {
+    const pipWindow = await window.documentPictureInPicture.requestWindow({
+      width: 360,
+      height: 360,
+      disallowReturnToOpener: true,
+      preferInitialWindowPlacement: true,
+    });
+    webPipWindow = pipWindow;
+    lastWebPipSignature = '';
+    buildWebPictureInPictureWindow(pipWindow);
+    renderWebPictureInPicture(true);
+    pipWindow.focus();
+  } catch(e) {
+    openBrowserPopoutWindow();
+  }
+}
+
+function renderWebPictureInPicture(force = false) {
+  if(!webPictureInPictureOpen()) return;
+  const pipDocument = webPipWindow.document;
+  const clock = fmtClockMs(remainingMs);
+  const name = getCurrentName();
+  const remainingRatio = Math.max(0, Math.min(1, remainingMs / (total * 1000)));
+  const signature = [
+    clock,
+    mode,
+    running ? '1' : '0',
+    name,
+    currentTheme,
+    Math.round(remainingRatio * 1000)
+  ].join('|');
+
+  if(!force && signature === lastWebPipSignature) return;
+  lastWebPipSignature = signature;
+
+  const body = pipDocument.body;
+  if(body) {
+    body.style.setProperty('--pip-bg-a', pal.a);
+    body.style.setProperty('--pip-bg-b', pal.b);
+    body.style.setProperty('--pip-tx', pal.text);
+    body.style.setProperty('--pip-muted', pal.muted);
+    body.style.setProperty('--pip-border', pal.border);
+    body.style.setProperty('--pip-accent', pal.e);
+    body.style.setProperty('--pip-accent-rgb', palRgb.e.join(','));
+  }
+
+  const time = pipDocument.getElementById('pipTime');
+  if(time) {
+    const { minutes, seconds } = clockParts(remainingMs);
+    time.setAttribute('aria-label', `${Number(minutes)} minutes ${Number(seconds)} seconds`);
+    time.innerHTML = clockDisplayMarkup(minutes, seconds);
+  }
+  renderGaugeProgress(pipDocument, webPipGaugeLength, PIP_GAUGE_IDS);
+}
+
 function openPopoutWindow() {
   easeCanvasDuringInteraction();
   setThemePopover(false);
@@ -1592,10 +3040,19 @@ function openPopoutWindow() {
     return;
   }
 
+  if(canUseWebPictureInPicture()) {
+    openWebPictureInPicture();
+    return;
+  }
+
+  openBrowserPopoutWindow();
+}
+
+function openBrowserPopoutWindow() {
   const url = new URL(window.location.href);
   url.searchParams.set('popout', '1');
-  const width = 420;
-  const height = 560;
+  const width = 360;
+  const height = 360;
   const left = Math.max(0, Math.round(window.screenX + window.outerWidth - width - 28));
   const top = Math.max(0, Math.round(window.screenY + 72));
   const features = [
@@ -1632,13 +3089,22 @@ function popBackIn() {
 }
 
 function togglePopoutWindow() {
-  IS_POPOUT ? popBackIn() : openPopoutWindow();
+  if(IS_POPOUT) {
+    popBackIn();
+    return;
+  }
+  if(webPictureInPictureOpen()) {
+    closeWebPictureInPicture();
+    return;
+  }
+  openPopoutWindow();
 }
 
 function configurePopoutMode() {
   const btn = document.getElementById('popoutToggle');
   if(!IS_POPOUT) return;
   document.body.classList.remove('sidebar-open');
+  document.body.classList.remove('settings-open');
   document.body.classList.add('popout-mode');
   document.title = 'Nimbus Timer';
   btn.setAttribute('aria-label', 'Pop timer back in');
@@ -1682,11 +3148,35 @@ function syncRemainingFromClock() {
 function fmtClockMs(ms) {
   const clamped = clampRemainingMs(ms);
   const wholeSeconds = Math.floor(clamped / 1000);
-  return fmt(wholeSeconds);
+  const minutes = String(Math.floor(wholeSeconds / 60)).padStart(2, '0');
+  const seconds = String(wholeSeconds % 60).padStart(2, '0');
+  return `${minutes}M ${seconds}S`;
+}
+
+function clockParts(ms) {
+  const clamped = clampRemainingMs(ms);
+  const wholeSeconds = Math.floor(clamped / 1000);
+  return {
+    minutes: String(Math.floor(wholeSeconds / 60)).padStart(2, '0'),
+    seconds: String(wholeSeconds % 60).padStart(2, '0'),
+  };
+}
+
+function clockDisplayMarkup(minutes, seconds) {
+  return `<span class="time-segment"><span class="time-value">${minutes}</span><span class="time-unit">M</span></span><span class="time-segment"><span class="time-value">${seconds}</span><span class="time-unit">S</span></span>`;
 }
 
 function updateTimeDisplay() {
-  document.getElementById('timeDisplay').textContent = fmtClockMs(remainingMs);
+  const display = document.getElementById('timeDisplay');
+  const { minutes, seconds } = clockParts(remainingMs);
+  const clockText = `${minutes}M ${seconds}S`;
+  display.setAttribute('aria-label', `${Number(minutes)} minutes ${Number(seconds)} seconds`);
+  if(clockText !== lastRenderedClock) {
+    display.innerHTML = clockDisplayMarkup(minutes, seconds);
+    lastRenderedClock = clockText;
+  }
+  updateDesktopChrome();
+  renderWebPictureInPicture();
 }
 
 function getElapsedSeconds() {
@@ -1774,8 +3264,8 @@ function updateUI() {
   const labels = {work:'Focus session', short:'Short break', long:'Long break'};
   document.getElementById('modeLabel').textContent = labels[mode];
   const playBtn = document.getElementById('playBtn');
-  playBtn.textContent = running ? 'Pause' : (remainingMs < total*1000 ? 'Resume' : 'Begin');
-  playBtn.title = `${playBtn.textContent} (Space)`;
+  playBtn.textContent = running ? 'Pause' : (remainingMs < total*1000 ? 'Resume' : 'Start');
+  playBtn.title = `${playBtn.textContent} (S)`;
   const ds = document.querySelectorAll('.dot');
   ds.forEach((d,i) => d.classList.toggle('filled', i < sessions));
   document.getElementById('sessCount').textContent = `${sessions} of ${sessionTarget} sessions`;
@@ -1791,6 +3281,7 @@ function updateUI() {
   }
 
   if(!IS_POPOUT && !applyingRemoteState) broadcastTimerState();
+  renderWebPictureInPicture(true);
 }
 
 function commitSession(completed) {
@@ -1997,22 +3488,35 @@ document.getElementById('stopBtn').addEventListener('click', clearCurrentCycle);
 
 document.getElementById('popoutToggle').addEventListener('click', togglePopoutWindow);
 
+document.getElementById('zenToggle').addEventListener('click', toggleZenMode);
+
 document.querySelectorAll('.pill').forEach(b => {
   b.addEventListener('click', () => setMode(b.dataset.mode, +b.dataset.minutes));
 });
 
 document.getElementById('themeToggle').addEventListener('click', toggleThemePicker);
 
+document.getElementById('downloadToggle').addEventListener('click', toggleDownloadMenu);
+
 document.querySelectorAll('.theme-swatch').forEach(b => {
   b.addEventListener('click', () => {
+    if(b.disabled || b.classList.contains('locked')) return;
     setTheme(b.dataset.theme);
     setThemePopover(false);
+  });
+});
+
+document.querySelectorAll('.download-option[aria-disabled="true"]').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
   });
 });
 
 document.addEventListener('click', e => {
   const picker = document.getElementById('themePicker');
   if(!picker.contains(e.target)) setThemePopover(false);
+  const downloadPicker = document.getElementById('downloadPicker');
+  if(downloadPicker && !downloadPicker.contains(e.target)) setDownloadMenu(false);
 });
 
 document.addEventListener('keydown', e => {
@@ -2025,14 +3529,25 @@ document.addEventListener('keydown', e => {
     '3': ['long', 15],
   };
 
+  if(key === 'z' && !IS_POPOUT) {
+    e.preventDefault();
+    toggleZenMode();
+    return;
+  }
+
+  if(key === 'escape' && zenMode) {
+    e.preventDefault();
+    setZenMode(false);
+    return;
+  }
+
   if(IS_POPOUT) {
     if(modeHotkeys[key]) {
       e.preventDefault();
       setMode(modeHotkeys[key][0], modeHotkeys[key][1]);
       return;
     }
-    if(key === ' ' || e.code === 'Space') {
-      if(e.target.closest && e.target.closest('button')) return;
+    if(key === 's') {
       e.preventDefault();
       togglePlay();
       return;
@@ -2040,7 +3555,7 @@ document.addEventListener('keydown', e => {
     const popoutActions = {
       p: togglePopoutWindow,
       r: resetCurrentTimer,
-      c: clearCurrentCycle,
+      e: clearCurrentCycle,
     };
     if(popoutActions[key]) {
       e.preventDefault();
@@ -2055,9 +3570,19 @@ document.addEventListener('keydown', e => {
       setThemePopover(false);
       return;
     }
+    if(document.getElementById('downloadPicker').classList.contains('open')) {
+      e.preventDefault();
+      setDownloadMenu(false);
+      return;
+    }
     if(document.body.classList.contains('sidebar-open')) {
       e.preventDefault();
       toggleSessionLog();
+      return;
+    }
+    if(document.body.classList.contains('settings-open')) {
+      e.preventDefault();
+      toggleSettings();
     }
     return;
   }
@@ -2068,8 +3593,7 @@ document.addEventListener('keydown', e => {
     return;
   }
 
-  if(key === ' ' || e.code === 'Space') {
-    if(e.target.closest && e.target.closest('button')) return;
+  if(key === 's') {
     e.preventDefault();
     togglePlay();
     return;
@@ -2078,10 +3602,12 @@ document.addEventListener('keydown', e => {
   const actions = {
     f: toggleFullscreen,
     l: toggleSessionLog,
+    ',': toggleSettings,
     p: togglePopoutWindow,
     t: toggleThemePicker,
+    z: toggleZenMode,
     r: resetCurrentTimer,
-    c: clearCurrentCycle,
+    e: clearCurrentCycle,
   };
 
   if(actions[key]) {
@@ -2095,6 +3621,28 @@ document.getElementById('fullscreenToggle').addEventListener('click', toggleFull
 document.addEventListener('fullscreenchange', updateFullscreenButton);
 
 document.getElementById('logToggle').addEventListener('click', toggleSessionLog);
+
+document.getElementById('settingsToggle').addEventListener('click', toggleSettings);
+
+document.getElementById('sidebarCloseBtn').addEventListener('click', () => {
+  if(document.body.classList.contains('sidebar-open')) toggleSessionLog();
+});
+
+document.getElementById('settingsCloseBtn').addEventListener('click', () => {
+  if(document.body.classList.contains('settings-open')) toggleSettings();
+});
+
+document.getElementById('autoUpdateOnStart').addEventListener('change', e => {
+  updatePreference('autoUpdateOnStart', e.target.checked);
+});
+
+document.getElementById('adaptiveCanvasResize').addEventListener('change', e => {
+  updatePreference('adaptiveCanvasResize', e.target.checked);
+});
+
+document.getElementById('checkUpdatesBtn').addEventListener('click', checkUpdatesNow);
+
+document.getElementById('installUpdateBtn').addEventListener('click', installReadyUpdate);
 
 document.getElementById('currentSessionName').addEventListener('input', updateUI);
 
@@ -2131,18 +3679,50 @@ document.getElementById('exportBtn').addEventListener('click', () => {
 let W, H;
 let lastCanvasFrame = 0;
 let easeCanvasUntil = 0;
+let resizeRaf = 0;
+let resizeSettleTimer = 0;
 const CANVAS_FRAME_MS = IS_POPOUT ? 1000 / 20 : 1000 / 24;
 
 function easeCanvasDuringInteraction() {
   easeCanvasUntil = performance.now() + 460;
 }
+function applyCanvasSize({ settled = false } = {}) {
+  W = window.innerWidth;
+  H = window.innerHeight;
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+  const resizing = !settled && performance.now() < easeCanvasUntil;
+  const scale = preferences.adaptiveCanvasResize && resizing
+    ? Math.min(pixelRatio, 1)
+    : Math.min(pixelRatio, 1.5);
+  const backingWidth = Math.max(1, Math.round(W * scale));
+  const backingHeight = Math.max(1, Math.round(H * scale));
+
+  if(canvas.width !== backingWidth || canvas.height !== backingHeight) {
+    canvas.width = backingWidth;
+    canvas.height = backingHeight;
+  }
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+}
 function resize() {
-  easeCanvasDuringInteraction();
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
+  if(!preferences.adaptiveCanvasResize) {
+    easeCanvasDuringInteraction();
+  } else {
+    easeCanvasUntil = performance.now() + 520;
+  }
+  if(resizeRaf) cancelAnimationFrame(resizeRaf);
+  resizeRaf = requestAnimationFrame(() => {
+    resizeRaf = 0;
+    applyCanvasSize();
+  });
+  if(resizeSettleTimer) clearTimeout(resizeSettleTimer);
+  resizeSettleTimer = setTimeout(() => {
+    resizeSettleTimer = 0;
+    applyCanvasSize({ settled: true });
+  }, 180);
 }
 window.addEventListener('resize', resize);
-resize();
 
 const t0 = performance.now();
 
@@ -2152,7 +3732,7 @@ const cloudDecks = Array.from({length:4}, (_, layer) => ({
   drift: .0000012 + layer*.0000009,
   counter: layer % 2 === 0 ? 1 : -1,
   phase: Math.random()*Math.PI*2,
-  alpha: .16 + layer*.04,
+  alpha: .2 + layer*.055,
   puffs: Array.from({length:18}, (_, i) => ({
     x: i / 17 + (Math.random()-.5)*.08,
     y: (Math.random()-.5)*.16,
@@ -2172,7 +3752,7 @@ const vaporWisps = Array.from({length:10}, (_, i) => ({
   amp: .008 + Math.random()*.018,
   drift: .000003 + Math.random()*.000005,
   phase: Math.random()*Math.PI*2,
-  alpha: .045 + Math.random()*.07,
+  alpha: .065 + Math.random()*.08,
   width: .55 + Math.random()*1.15,
   depth: i / 9,
 }));
@@ -2184,13 +3764,13 @@ const highMist = Array.from({length:6}, () => ({
   ry: .08 + Math.random()*.14,
   drift: .0000018 + Math.random()*.0000035,
   phase: Math.random()*Math.PI*2,
-  alpha: .045 + Math.random()*.055,
+  alpha: .06 + Math.random()*.07,
 }));
 
 const stars = Array.from({length:42}, () => ({
   x: Math.random(), y: Math.random(),
   r: .5 + Math.random()*1.2,
-  op: .04 + Math.random()*.14,
+  op: .06 + Math.random()*.18,
   tw: .00012+Math.random()*.00016,
   phase: Math.random()*Math.PI*2,
 }));
@@ -2219,15 +3799,16 @@ function drawCloudEllipse(cx, cy, rx, ry, stops, rotate = 0) {
 
 function draw(ts) {
   requestAnimationFrame(draw);
-  const targetFrameMs = ts < easeCanvasUntil ? 1000 / 12 : CANVAS_FRAME_MS;
+  const easingCanvas = preferences.adaptiveCanvasResize && ts < easeCanvasUntil;
+  const targetFrameMs = easingCanvas ? 1000 / 14 : CANVAS_FRAME_MS;
   if(lastCanvasFrame && ts - lastCanvasFrame < targetFrameMs) return;
   lastCanvasFrame = ts;
 
   const t = ts - t0;
   const progress = remainingMs / (total*1000);
-  const vitality = running ? 1 : 0.55;
+  const vitality = running ? 1 : 0.68;
   const cd = dissolve;
-  const lowDetail = ts < easeCanvasUntil || W * H > 1600000;
+  const lowDetail = preferences.adaptiveCanvasResize && (easingCanvas || W * H > 1600000);
 
   const drawW = Math.max(1, W);
 
@@ -2235,12 +3816,24 @@ function draw(ts) {
 
   const pa = palRgb.a, pb = palRgb.b, pc = palRgb.c, pd = palRgb.d, pe = palRgb.e;
 
-  const bgGrad = ctx.createRadialGradient(drawW*.5,H*.3,0,drawW*.5,H*.5,Math.max(drawW,H)*.8);
-  bgGrad.addColorStop(0, `rgb(${pb})`);
-  bgGrad.addColorStop(.6, `rgb(${pa})`);
-  bgGrad.addColorStop(1, `rgb(${pa})`);
+  const bgCore = lerpColor(pb, pd, .28);
+  const bgGrad = ctx.createRadialGradient(drawW*.52,H*.24,0,drawW*.5,H*.56,Math.max(drawW,H)*.82);
+  bgGrad.addColorStop(0, `rgb(${bgCore.join(',')})`);
+  bgGrad.addColorStop(.46, `rgb(${pb.join(',')})`);
+  bgGrad.addColorStop(.78, `rgb(${pa.join(',')})`);
+  bgGrad.addColorStop(1, `rgb(${pa.join(',')})`);
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0,0,W,H);
+
+  const bloomGrad = ctx.createRadialGradient(drawW*.68,H*.18,0,drawW*.68,H*.18,Math.max(drawW,H)*.58);
+  bloomGrad.addColorStop(0, `rgba(${pe.join(',')},.18)`);
+  bloomGrad.addColorStop(.42, `rgba(${pd.join(',')},.1)`);
+  bloomGrad.addColorStop(1, `rgba(${pc.join(',')},0)`);
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  ctx.fillStyle = bloomGrad;
+  ctx.fillRect(0,0,W,H);
+  ctx.restore();
 
   stars.forEach(s => {
     const tw = Math.sin(t*s.tw+s.phase)*.5+.5;
@@ -2262,8 +3855,8 @@ function draw(ts) {
     const alpha = mist.alpha * life * (.8 + vitality*.2);
     const rgb = lerpColor(pd, pe, .35 + i*.04);
     drawCloudEllipse(cx, cy, mist.rx*drawW, mist.ry*H, [
-      [0, `rgba(${pe.join(',')},${alpha*.42})`],
-      [.48, `rgba(${rgb.join(',')},${alpha*.24})`],
+      [0, `rgba(${pe.join(',')},${alpha*.52})`],
+      [.48, `rgba(${rgb.join(',')},${alpha*.3})`],
       [1, `rgba(${pc.join(',')},0)`],
     ], Math.sin(mist.phase)*.1);
   });
@@ -2311,8 +3904,8 @@ function draw(ts) {
     const hazeTop = (deckY - .1*deck.scale) * H;
     const hazeHeight = (.22 + deck.scale*.08) * H;
     const baseGrad = ctx.createLinearGradient(0, hazeTop, 0, hazeTop + hazeHeight);
-    baseGrad.addColorStop(0, `rgba(${pe.join(',')},${baseAlpha*.04})`);
-    baseGrad.addColorStop(.46, `rgba(${midRgb.join(',')},${baseAlpha*.15})`);
+    baseGrad.addColorStop(0, `rgba(${pe.join(',')},${baseAlpha*.06})`);
+    baseGrad.addColorStop(.46, `rgba(${midRgb.join(',')},${baseAlpha*.2})`);
     baseGrad.addColorStop(1, `rgba(${pc.join(',')},0)`);
     ctx.fillStyle = baseGrad;
     ctx.fillRect(0, hazeTop, drawW, hazeHeight);
@@ -2328,22 +3921,22 @@ function draw(ts) {
       const alpha = baseAlpha * (.72 + (i%6)*.035);
 
       drawCloudEllipse(cx + rx*.03, cy + ry*.2, rx*1.12, ry*.76, [
-        [0, `rgba(${pc.join(',')},${alpha*.22*shade})`],
-        [.55, `rgba(${midRgb.join(',')},${alpha*.15})`],
+        [0, `rgba(${pc.join(',')},${alpha*.28*shade})`],
+        [.55, `rgba(${midRgb.join(',')},${alpha*.18})`],
         [1, `rgba(${pc.join(',')},0)`],
       ], p.lean*.28);
 
       drawCloudEllipse(cx, cy, rx, ry, [
-        [0, `rgba(${pe.join(',')},${alpha*.48*shade})`],
-        [.44, `rgba(${lightRgb.join(',')},${alpha*.3})`],
-        [.78, `rgba(${midRgb.join(',')},${alpha*.17})`],
+        [0, `rgba(${pe.join(',')},${alpha*.58*shade})`],
+        [.44, `rgba(${lightRgb.join(',')},${alpha*.36})`],
+        [.78, `rgba(${midRgb.join(',')},${alpha*.2})`],
         [1, `rgba(${pc.join(',')},0)`],
       ], p.lean);
 
       if(!lowDetail && i % 4 === 1) {
         drawCloudEllipse(cx - rx*.18, cy - ry*.26, rx*.42, ry*.28, [
-          [0, `rgba(255,255,255,${alpha*.25})`],
-          [.58, `rgba(${pe.join(',')},${alpha*.13})`],
+          [0, `rgba(255,255,255,${alpha*.34})`],
+          [.58, `rgba(${pe.join(',')},${alpha*.16})`],
           [1, `rgba(${pe.join(',')},0)`],
         ], p.lean*.6);
       }
@@ -2356,8 +3949,8 @@ function draw(ts) {
     const pulse = 1 + Math.sin(t*.00032)*.035;
     const coreR = Math.min(drawW,H) * .22 * coreLife * pulse;
     const coreGrad = ctx.createRadialGradient(drawW*.5, H*.46, 0, drawW*.5, H*.46, coreR);
-    coreGrad.addColorStop(0, `rgba(${pe.join(',')},${.16*coreLife})`);
-    coreGrad.addColorStop(.5, `rgba(${pd.join(',')},${.09*coreLife})`);
+    coreGrad.addColorStop(0, `rgba(${pe.join(',')},${.24*coreLife})`);
+    coreGrad.addColorStop(.5, `rgba(${pd.join(',')},${.14*coreLife})`);
     coreGrad.addColorStop(1, `rgba(${pc.join(',')},0)`);
     ctx.beginPath();
     ctx.arc(drawW*.5, H*.46, coreR, 0, Math.PI*2);
@@ -2367,7 +3960,7 @@ function draw(ts) {
 
   const veilGrad = ctx.createLinearGradient(0, H*.5, 0, H);
   veilGrad.addColorStop(0, 'transparent');
-  veilGrad.addColorStop(1, `rgba(${pa},.55)`);
+  veilGrad.addColorStop(1, `rgba(${pa},.48)`);
   ctx.fillStyle = veilGrad;
   ctx.fillRect(0, H*.5, W, H*.5);
 
@@ -2386,14 +3979,20 @@ function draw(ts) {
   }
 }
 
-configurePopoutMode();
-requestAnimationFrame(draw);
-buildGauge();
 loadState();
 setTheme(currentTheme, false);
+buildGauge();
+configureDesktopChrome();
+configurePopoutMode();
 renderLog();
 updateMetrics();
 updateFullscreenButton();
+applyPreferenceControls();
+renderVersionHistory();
+renderDownloadLinks();
+initializeDesktopIntegration();
+resize();
+requestAnimationFrame(draw);
 updateUI();
 </script>
 </body>

@@ -1,6 +1,6 @@
 {
   "name": "nimbus",
-  "version": "1.0.0",
+  "version": "1.2.6",
   "description": "Nimbus Pomodoro Timer desktop client for macOS and Windows.",
   "private": true,
   "author": "Josh Johnson",
@@ -13,7 +13,9 @@
     "package": "electron-builder --dir --publish never",
     "dist": "electron-builder --publish never",
     "dist:mac": "electron-builder --mac --publish never",
-    "dist:win": "electron-builder --win --publish never"
+    "dist:win": "electron-builder --win --publish never",
+    "release:mac": "electron-builder --mac --publish always",
+    "release:win": "electron-builder --win --publish always"
   },
   "build": {
     "appId": "com.murderszn.nimbus",
@@ -30,6 +32,15 @@
       "buildResources": "assets",
       "output": "dist"
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "murderszn",
+        "repo": "nimbus",
+        "releaseType": "release"
+      }
+    ],
+    "electronUpdaterCompatibility": ">=2.16",
     "mac": {
       "category": "public.app-category.productivity",
       "icon": "icon.icns",
@@ -86,5 +97,8 @@
   "devDependencies": {
     "electron": "^41.3.0",
     "electron-builder": "^26.8.1"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.3"
   }
 }

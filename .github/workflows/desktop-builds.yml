@@ -4,7 +4,12 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -18,10 +23,12 @@ jobs:
           - name: macOS
             os: macos-latest
             script: dist:mac
+            releaseScript: release:mac
             artifact: nimbus-macos
           - name: Windows
             os: windows-latest
             script: dist:win
+            releaseScript: release:win
             artifact: nimbus-windows
 
     steps:
@@ -41,8 +48,15 @@ jobs:
         run: npm run check
 
       - name: Build client
-        run: npm run ${{ matrix.script }}
+        shell: pwsh
+        run: |
+          if ("${{ github.ref_type }}" -eq "tag") {
+            npm run ${{ matrix.releaseScript }}
+          } else {
+            npm run ${{ matrix.script }}
+          }
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Upload client artifacts
