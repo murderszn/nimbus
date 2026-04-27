@@ -45,7 +45,7 @@
     "mac": {
       "category": "public.app-category.productivity",
       "icon": "icon.icns",
-      "identity": null,
+      "identity": "-",
       "target": [
         {
           "target": "dmg",

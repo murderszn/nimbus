@@ -3,7 +3,6 @@ const { spawnSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
-const { autoUpdater } = require('electron-updater');
 
 const isMac = process.platform === 'darwin';
 const isDev = process.argv.includes('--dev');
@@ -13,6 +12,10 @@ const updateReleaseUrl = 'https://github.com/murderszn/nimbus/releases/latest';
 let checkedUpdatesThisLaunch = false;
 let pendingStartupUpdateCheck = null;
 let installUpdateScheduled = false;
+let mainWindow = null;
+let autoUpdater = null;
+let autoUpdaterConfigured = false;
+let autoUpdaterLoadError = null;
 const popoutWindowStates = new WeakMap();
 let updaterPreferences = {
   autoRestartAfterUpdate: true
@@ -109,6 +112,14 @@ function macCodeSignatureStatus() {
 }
 
 function updateSupport() {
+  if (autoUpdaterLoadError) {
+    return {
+      supported: false,
+      reason: `Update checks are unavailable because the updater failed to load: ${normalizeUpdateError(autoUpdaterLoadError)}`,
+      manualDownloadUrl: isMac ? macManualDownloadUrl() : null
+    };
+  }
+
   if (isDev || !app.isPackaged) {
     return {
       supported: false,
@@ -171,19 +182,41 @@ function normalizeUpdateError(error) {
   return message;
 }
 
+function loadAutoUpdater() {
+  if (autoUpdater || autoUpdaterLoadError) return autoUpdater;
+
+  try {
+    ({ autoUpdater } = require('electron-updater'));
+    return autoUpdater;
+  } catch (error) {
+    autoUpdaterLoadError = error;
+    return null;
+  }
+}
+
 function configureAutoUpdater() {
-  autoUpdater.setFeedURL({
+  if (autoUpdaterConfigured) return;
+
+  const support = updateSupport();
+  if (!support.supported) return;
+
+  const updater = loadAutoUpdater();
+  if (!updater) return;
+
+  autoUpdaterConfigured = true;
+
+  updater.setFeedURL({
     provider: 'generic',
     url: updateFeedUrl
   });
-  autoUpdater.autoDownload = true;
-  autoUpdater.autoInstallOnAppQuit = true;
-  autoUpdater.autoRunAppAfterInstall = true;
-  autoUpdater.allowPrerelease = false;
-  autoUpdater.allowDowngrade = false;
-  autoUpdater.fullChangelog = true;
+  updater.autoDownload = true;
+  updater.autoInstallOnAppQuit = true;
+  updater.autoRunAppAfterInstall = true;
+  updater.allowPrerelease = false;
+  updater.allowDowngrade = false;
+  updater.fullChangelog = true;
 
-  autoUpdater.on('checking-for-update', () => {
+  updater.on('checking-for-update', () => {
     sendUpdateStatus({
       state: 'checking',
       message: 'Checking GitHub releases for updates...',
@@ -193,7 +226,7 @@ function configureAutoUpdater() {
     });
   });
 
-  autoUpdater.on('update-available', info => {
+  updater.on('update-available', info => {
     sendUpdateStatus({
       state: 'available',
       message: `Version ${info.version} is available. Downloading update...`,
@@ -205,7 +238,7 @@ function configureAutoUpdater() {
     });
   });
 
-  autoUpdater.on('update-not-available', info => {
+  updater.on('update-not-available', info => {
     sendUpdateStatus({
       state: 'current',
       message: `Nimbus is up to date on version ${info.version || app.getVersion()}.`,
@@ -217,7 +250,7 @@ function configureAutoUpdater() {
     });
   });
 
-  autoUpdater.on('download-progress', progress => {
+  updater.on('download-progress', progress => {
     sendUpdateStatus({
       state: 'downloading',
       message: `Downloading update... ${Math.round(progress.percent || 0)}%`,
@@ -226,7 +259,7 @@ function configureAutoUpdater() {
     });
   });
 
-  autoUpdater.on('update-downloaded', info => {
+  updater.on('update-downloaded', info => {
     sendUpdateStatus({
       state: 'downloaded',
       message: updaterPreferences.autoRestartAfterUpdate
@@ -244,7 +277,7 @@ function configureAutoUpdater() {
     }
   });
 
-  autoUpdater.on('error', error => {
+  updater.on('error', error => {
     installUpdateScheduled = false;
     sendUpdateStatus({
       state: 'error',
@@ -270,7 +303,12 @@ async function checkForUpdates({ userInitiated = false } = {}) {
   checkedUpdatesThisLaunch = true;
 
   try {
-    await autoUpdater.checkForUpdates();
+    configureAutoUpdater();
+    const updater = loadAutoUpdater();
+    if (!updater) {
+      throw autoUpdaterLoadError || new Error('Updater failed to load.');
+    }
+    await updater.checkForUpdates();
     return publicUpdateStatus();
   } catch (error) {
     return sendUpdateStatus({
@@ -289,6 +327,16 @@ function scheduleUpdateInstall() {
     return publicUpdateStatus();
   }
 
+  const updater = loadAutoUpdater();
+  if (!updater) {
+    return sendUpdateStatus({
+      state: 'error',
+      message: normalizeUpdateError(autoUpdaterLoadError || new Error('Updater failed to load.')),
+      percent: 0,
+      canInstall: false
+    });
+  }
+
   installUpdateScheduled = true;
   sendUpdateStatus({
     state: 'installing',
@@ -300,9 +348,9 @@ function scheduleUpdateInstall() {
   setTimeout(() => {
     try {
       if (isMac) {
-        autoUpdater.quitAndInstall();
+        updater.quitAndInstall();
       } else {
-        autoUpdater.quitAndInstall(true, true);
+        updater.quitAndInstall(true, true);
       }
     } catch (error) {
       installUpdateScheduled = false;
@@ -583,7 +631,7 @@ function webPreferences() {
 }
 
 function createMainWindow() {
-  const mainWindow = new BrowserWindow({
+  const window = new BrowserWindow({
     width: 1120,
     height: 760,
     minWidth: 760,
@@ -595,19 +643,27 @@ function createMainWindow() {
     webPreferences: webPreferences()
   });
 
-  hardenWindow(mainWindow);
+  mainWindow = window;
 
-  mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
+  window.on('closed', () => {
+    if (mainWindow === window) {
+      mainWindow = null;
+    }
   });
 
-  mainWindow.loadFile(appHtmlPath());
+  hardenWindow(window);
+
+  window.once('ready-to-show', () => {
+    window.show();
+  });
+
+  window.loadFile(appHtmlPath());
 
   if (isDev) {
-    mainWindow.webContents.openDevTools({ mode: 'detach' });
+    window.webContents.openDevTools({ mode: 'detach' });
   }
 
-  return mainWindow;
+  return window;
 }
 
 function createMenu() {
@@ -674,10 +730,11 @@ if (process.platform === 'win32') {
   app.setAppUserModelId('com.murderszn.nimbus');
 }
 
-configureAutoUpdater();
 registerIpcHandlers();
 
 app.whenReady().then(() => {
+  configureAutoUpdater();
+
   if (isMac) {
     const dockIcon = appIcon();
     if (dockIcon) app.dock.setIcon(dockIcon);
