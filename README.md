@@ -1,7 +1,7 @@
 # Nimbus
 
 <p align="center">
-  <img src="./assets/icon.png" alt="Nimbus app icon" width="128" height="128">
+  <img src="./assets/nimbus-hero-cloud.png" alt="Nimbus cloud hero artwork" width="900">
 </p>
 
 [![Desktop Builds](https://github.com/murderszn/nimbus/actions/workflows/desktop-builds.yml/badge.svg)](https://github.com/murderszn/nimbus/actions/workflows/desktop-builds.yml)
@@ -14,6 +14,10 @@ Nimbus is a polished Pomodoro timer for focused work sessions. It started as a s
 The app combines a cloud-inspired animated canvas interface with practical session tracking: focus blocks, short breaks, long breaks, session naming, pause history, progress metrics, theme controls, CSV export, fullscreen mode, and a compact popout timer.
 
 ## Download Nimbus
+
+<p align="center">
+  <img src="./assets/icon.png" alt="Nimbus app icon" width="128" height="128">
+</p>
 
 Nimbus currently ships desktop clients for macOS and Windows. iPhone and iPad builds are not published yet.
 
@@ -42,6 +46,7 @@ All release files are available on the [latest Nimbus release](https://github.co
 
 | Path | Purpose |
 | --- | --- |
+| [`index.html`](./index.html) | The public Nimbus splash page with SEO metadata, app artwork, and direct macOS/Windows download links. |
 | [`pomodoro-cloud-v2.html`](./pomodoro-cloud-v2.html) | The main Nimbus web app: UI, animation, timer logic, session log, themes, and export behavior. |
 | [`desktop/main.js`](./desktop/main.js) | Electron main process: app windows, menus, navigation rules, popout window handling, and desktop launch behavior. |
 | [`desktop/preload.js`](./desktop/preload.js) | Small preload bridge that exposes desktop platform metadata to the app. |

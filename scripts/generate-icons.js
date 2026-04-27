@@ -397,8 +397,8 @@ function writeWebManifest() {
     start_url: '../pomodoro-cloud-v2.html',
     scope: '../',
     display: 'standalone',
-    background_color: '#061a3d',
-    theme_color: '#061a3d',
+    background_color: '#010611',
+    theme_color: '#010611',
     icons: [
       {
         src: './icon-192.png',

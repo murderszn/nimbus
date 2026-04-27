@@ -7,8 +7,8 @@
   <meta name="description" content="Nimbus is a polished Pomodoro timer for focused work sessions with animated cloud visuals, session tracking, progress metrics, CSV export, and desktop builds for macOS and Windows." />
   <meta name="application-name" content="Nimbus" />
   <meta name="apple-mobile-web-app-title" content="Nimbus" />
-  <meta name="theme-color" content="#061a3d" />
-  <meta name="msapplication-TileColor" content="#061a3d" />
+  <meta name="theme-color" content="#010611" />
+  <meta name="msapplication-TileColor" content="#010611" />
   <meta name="msapplication-TileImage" content="./assets/icon-192.png" />
   <meta name="robots" content="index, follow" />
   <meta property="og:type" content="website" />
@@ -61,9 +61,9 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --work-a: #061a3d; --work-b: #0067c8; --work-c: #0a84ff;
-      --work-d: #32d3ff; --work-e: #b9f3ff;
-      --work-text: #f6fbff; --work-muted: rgba(221,245,255,0.82); --work-border: rgba(125,225,255,0.44);
+      --work-a: #010611; --work-b: #071e3b; --work-c: #0d5f9f;
+      --work-d: #20b8f2; --work-e: #a9eaff;
+      --work-text: #f6fbff; --work-muted: rgba(214,235,252,0.78); --work-border: rgba(104,202,255,0.36);
 
       --short-a: #04271f; --short-b: #007a5f; --short-c: #13b988;
       --short-d: #62f0bd; --short-e: #d9fff1;
@@ -76,8 +76,8 @@
       --bg-a: var(--work-a); --bg-b: var(--work-b);
       --cloud-c: var(--work-c); --cloud-d: var(--work-d); --cloud-e: var(--work-e);
       --tx: var(--work-text); --muted: var(--work-muted); --border: var(--work-border);
-      --bg-a-rgb: 6, 26, 61; --bg-b-rgb: 0, 103, 200;
-      --cloud-c-rgb: 10, 132, 255; --cloud-d-rgb: 50, 211, 255; --cloud-e-rgb: 185, 243, 255;
+      --bg-a-rgb: 1, 6, 17; --bg-b-rgb: 7, 30, 59;
+      --cloud-c-rgb: 13, 95, 159; --cloud-d-rgb: 32, 184, 242; --cloud-e-rgb: 169, 234, 255;
       --panel-bg: rgba(var(--bg-a-rgb), .88);
       --panel-surface: rgba(var(--bg-b-rgb), .44);
       --panel-line: rgba(var(--cloud-e-rgb), .24);
@@ -173,9 +173,8 @@
     .app-chrome-mark {
       width: 18px;
       height: 18px;
-      border-radius: 6px;
-      background: url('./assets/icon-192.png') center / cover no-repeat;
-      box-shadow: 0 0 16px rgba(var(--cloud-d-rgb), .28);
+      display: block;
+      object-fit: contain;
       flex: 0 0 auto;
     }
     .app-chrome-status {
@@ -1740,7 +1739,7 @@
 
 <header class="app-chrome" id="appChrome" aria-hidden="true">
   <div class="app-chrome-title">
-    <span class="app-chrome-mark" aria-hidden="true"></span>
+    <img class="app-chrome-mark" src="./assets/icon-192.png" width="36" height="36" alt="" aria-hidden="true" />
     <span id="appChromeTitle">Nimbus</span>
     <span class="app-chrome-version" id="appChromeVersion">1.2.12</span>
   </div>
@@ -1805,7 +1804,7 @@
         Theme
       </button>
       <div class="theme-popover" id="themePopover" aria-label="Color theme" aria-hidden="true">
-        <button class="theme-swatch active" data-theme="blue" style="--swatch-hi:#b9f3ff;--swatch-mid:#32d3ff;--swatch-deep:#0067c8" aria-label="Blue theme" title="Blue"></button>
+        <button class="theme-swatch active" data-theme="blue" style="--swatch-hi:#a9eaff;--swatch-mid:#20b8f2;--swatch-deep:#071e3b" aria-label="Blue theme" title="Blue"></button>
         <button class="theme-swatch" data-theme="mojave" style="--swatch-hi:#ffd1c5;--swatch-mid:#ff735f;--swatch-deep:#8f1d1c" aria-label="Mojave red theme" title="Mojave red"></button>
         <button class="theme-swatch" data-theme="everest" style="--swatch-hi:#d9fff1;--swatch-mid:#62f0bd;--swatch-deep:#007a5f" aria-label="Everest green theme" title="Everest green"></button>
         <button class="theme-swatch" data-theme="amber" style="--swatch-hi:#fff0b8;--swatch-mid:#ffd15c;--swatch-deep:#9c5a00" aria-label="Amber theme" title="Amber"></button>
@@ -1980,7 +1979,7 @@ const desktopBridge = window.nimbusDesktop || {};
 const IS_DESKTOP = !!desktopBridge.isDesktop;
 
 const themes = {
-  blue:    { a:'#061a3d', b:'#0067c8', c:'#0a84ff', d:'#32d3ff', e:'#b9f3ff', text:'#f6fbff', muted:'rgba(221,245,255,0.82)', border:'rgba(125,225,255,0.44)' },
+  blue:    { a:'#010611', b:'#071e3b', c:'#0d5f9f', d:'#20b8f2', e:'#a9eaff', text:'#f6fbff', muted:'rgba(214,235,252,0.78)', border:'rgba(104,202,255,0.36)' },
   mojave:  { a:'#2d090b', b:'#8f1d1c', c:'#d93b32', d:'#ff735f', e:'#ffd1c5', text:'#fff5f1', muted:'rgba(255,220,211,0.82)', border:'rgba(255,145,120,0.44)' },
   everest: { a:'#04271f', b:'#007a5f', c:'#13b988', d:'#62f0bd', e:'#d9fff1', text:'#f3fff9', muted:'rgba(210,255,238,0.82)', border:'rgba(125,255,205,0.42)' },
   amber:   { a:'#2b1703', b:'#9c5a00', c:'#e89510', d:'#ffd15c', e:'#fff0b8', text:'#fff9e8', muted:'rgba(255,234,188,0.82)', border:'rgba(255,202,88,0.44)' },
@@ -2998,13 +2997,13 @@ function buildWebPictureInPictureWindow(pipWindow) {
       *, *::before, *::after { box-sizing: border-box; }
       html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
       body {
-        --pip-bg-a: #061a3d;
-        --pip-bg-b: #0067c8;
+        --pip-bg-a: #010611;
+        --pip-bg-b: #071e3b;
         --pip-tx: #f6fbff;
-        --pip-muted: rgba(221,245,255,.82);
-        --pip-border: rgba(125,225,255,.44);
-        --pip-accent: #b9f3ff;
-        --pip-accent-rgb: 185,243,255;
+        --pip-muted: rgba(214,235,252,.78);
+        --pip-border: rgba(104,202,255,.36);
+        --pip-accent: #a9eaff;
+        --pip-accent-rgb: 169,234,255;
         font-family: 'DM Sans', sans-serif;
         font-weight: 300;
         color: var(--pip-tx);
