@@ -356,7 +356,7 @@
     .pill {
       min-width: 0; height: 34px;
       display: flex; align-items: center; justify-content: center;
-      background: rgba(var(--bg-a-rgb),.18); border: 1px solid rgba(var(--cloud-e-rgb),.32); border-radius: 8px;
+      background: rgba(var(--bg-a-rgb),.18); border: 1px solid transparent; border-radius: 8px;
       color: rgba(255,255,255,.82); font-family: 'DM Sans', sans-serif; font-size: 10px;
       font-weight: 300; letter-spacing: .13em; text-transform: uppercase;
       padding: 0 12px; cursor: pointer; outline: none;
@@ -364,13 +364,13 @@
       backdrop-filter: none;
       transition: background .25s ease, border-color .25s ease, color var(--trans), box-shadow .25s ease;
     }
-    .pill:hover { border-color: rgba(var(--cloud-e-rgb),.58); color: #fff; background: rgba(var(--cloud-e-rgb),.1); }
+    .pill:hover { border-color: transparent; color: #fff; background: rgba(var(--cloud-e-rgb),.1); }
     .pill:focus-visible {
       border-color: rgba(255,255,255,.68);
       box-shadow: 0 0 0 3px rgba(255,255,255,.12);
     }
     .pill.active {
-      border-color: rgba(var(--cloud-e-rgb),.7);
+      border-color: transparent;
       background: linear-gradient(180deg, rgba(var(--cloud-e-rgb),.18), rgba(var(--cloud-d-rgb),.1));
       color: #fff;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 10px 26px rgba(0,0,0,.22), 0 0 24px rgba(var(--cloud-d-rgb),.16);
@@ -635,7 +635,7 @@
     }
     .toolbar-tab {
       min-width: 132px; height: 36px;
-      background: rgba(var(--bg-a-rgb), .16); border: 1px solid rgba(var(--cloud-e-rgb), .4);
+      background: rgba(var(--bg-a-rgb), .18); border: 1px solid transparent;
       border-radius: 8px; color: rgba(255,255,255,.86);
       font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 300;
       letter-spacing: .2em; text-transform: uppercase; padding: 0 20px;
@@ -649,13 +649,13 @@
       --raise: -1px;
     }
     .toolbar-tab:hover {
-      border-color: rgba(var(--cloud-e-rgb), .54);
+      border-color: transparent;
       color: #fff;
       background: rgba(var(--cloud-e-rgb), .12);
     }
     .toolbar-tab.active,
     .log-toggle.has-data {
-      border-color: rgba(var(--cloud-e-rgb), .48);
+      border-color: transparent;
       background: rgba(var(--cloud-d-rgb), .07);
     }
     .toolbar-tab:focus-visible {
@@ -670,7 +670,7 @@
       position: absolute; top: var(--top-y); left: var(--page-x);
       width: 36px; height: 36px;
       display: flex; align-items: center; justify-content: center;
-      background: rgba(var(--bg-a-rgb),.2); border: 1px solid rgba(var(--cloud-e-rgb),.34);
+      background: rgba(var(--bg-a-rgb),.2); border: 1px solid transparent;
       border-radius: 8px; color: rgba(255,255,255,.8);
       cursor: pointer; outline: none; z-index: 100;
       backdrop-filter: none;
@@ -678,7 +678,7 @@
     }
     .fullscreen-toggle:hover {
       transform: translateY(-1px);
-      border-color: rgba(var(--cloud-e-rgb),.58);
+      border-color: transparent;
       color: #fff;
       background: rgba(var(--cloud-e-rgb),.1);
     }
@@ -706,7 +706,7 @@
       position: absolute; top: var(--top-y); left: calc(var(--page-x) + 44px);
       min-width: 36px; height: 36px;
       display: flex; align-items: center; justify-content: center; gap: 8px;
-      background: rgba(var(--bg-a-rgb),.2); border: 1px solid rgba(var(--cloud-e-rgb),.34);
+      background: rgba(var(--bg-a-rgb),.2); border: 1px solid transparent;
       border-radius: 8px; color: rgba(255,255,255,.8);
       cursor: pointer; outline: none; z-index: 100;
       backdrop-filter: none;
@@ -715,7 +715,7 @@
     }
     .popout-toggle:hover {
       transform: translateY(-1px);
-      border-color: rgba(var(--cloud-e-rgb),.58);
+      border-color: transparent;
       color: #fff;
       background: rgba(var(--cloud-e-rgb),.1);
     }
@@ -767,7 +767,7 @@
       position: absolute; top: var(--top-y); left: calc(var(--page-x) + 88px);
       width: 36px; height: 36px;
       display: flex; align-items: center; justify-content: center;
-      background: rgba(var(--bg-a-rgb),.2); border: 1px solid rgba(var(--cloud-e-rgb),.34);
+      background: rgba(var(--bg-a-rgb),.2); border: 1px solid transparent;
       border-radius: 8px; color: rgba(255,255,255,.8);
       cursor: pointer; outline: none; z-index: 100;
       backdrop-filter: none;
@@ -779,12 +779,12 @@
     }
     .zen-toggle:hover {
       transform: translateY(-1px);
-      border-color: rgba(var(--cloud-e-rgb),.58);
+      border-color: transparent;
       color: #fff;
       background: rgba(var(--cloud-e-rgb),.1);
     }
     .zen-toggle.active {
-      border-color: rgba(var(--cloud-e-rgb), .62);
+      border-color: transparent;
       background: rgba(var(--cloud-d-rgb), .12);
     }
     .zen-toggle:focus-visible {
@@ -799,7 +799,7 @@
         linear-gradient(180deg, rgba(var(--bg-a-rgb), .94), rgba(var(--bg-b-rgb), .82)),
         radial-gradient(circle at 18% 8%, rgba(var(--cloud-e-rgb), .2), transparent 46%);
       backdrop-filter: none;
-      border-left: 1px solid var(--panel-line);
+      border-left: none;
       transform: translateX(100%);
       transition: transform .34s cubic-bezier(.2,.8,.2,1), background .75s ease, border-color .75s ease;
       z-index: 200;
@@ -812,7 +812,7 @@
 
     .sidebar-header {
       padding: 32px 28px 20px;
-      border-bottom: 1px solid var(--panel-line);
+      border-bottom: none;
       flex-shrink: 0;
       position: relative;
     }
@@ -831,11 +831,11 @@
     /* ── METRICS STRIP ── */
     .metrics-strip {
       display: grid; grid-template-columns: 1fr 1fr 1fr;
-      gap: 1px; background: var(--panel-line);
-      border-bottom: 1px solid var(--panel-line); flex-shrink: 0;
+      gap: 0; background: transparent;
+      border-bottom: none; flex-shrink: 0;
     }
     .metric-cell {
-      background: rgba(var(--bg-a-rgb), .56); padding: 14px 16px; text-align: center;
+      background: transparent; padding: 14px 16px; text-align: center;
     }
     .metric-val {
       font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 300;
@@ -850,7 +850,7 @@
     .streak-row {
       padding: 16px 28px 12px;
       display: flex; align-items: center; justify-content: space-between;
-      border-bottom: 1px solid var(--panel-line); flex-shrink: 0;
+      border-bottom: none; flex-shrink: 0;
     }
     .streak-label {
       font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
@@ -874,7 +874,7 @@
       display: flex; align-items: center; justify-content: space-between; gap: 12px;
       font-size: 9px; letter-spacing: .22em; text-transform: uppercase;
       color: var(--muted); padding: 16px 28px 10px;
-      transition: color var(--trans); border-bottom: 1px solid var(--panel-line);
+      transition: color var(--trans); border-bottom: none;
     }
     .log-section-count {
       letter-spacing: .14em;
@@ -890,13 +890,11 @@
     }
 
     .log-entry {
-      padding: 14px 28px; border-bottom: 1px solid var(--panel-line);
+      padding: 14px 28px; border-bottom: none;
       cursor: default; transition: background .2s;
       position: relative;
-      border-left: 2px solid transparent;
+      border-left: none;
     }
-    .log-entry.completed { border-left-color: rgba(var(--cloud-e-rgb), .42); }
-    .log-entry.incomplete { border-left-color: rgba(255,255,255,.14); }
     .log-entry:hover { background: var(--panel-hover); }
 
     .log-entry-header {
@@ -965,25 +963,25 @@
 
     /* ── SIDEBAR FOOTER ── */
     .sidebar-footer {
-      padding: 16px 28px; border-top: 1px solid var(--panel-line); flex-shrink: 0;
+      padding: 16px 28px; border-top: none; flex-shrink: 0;
       display: flex; gap: 10px;
     }
     .sidebar-foot-btn {
-      flex: 1; background: transparent; border: 1px solid var(--panel-line);
+      flex: 1; background: rgba(var(--bg-a-rgb), .18); border: 1px solid transparent;
       border-radius: 8px; color: var(--muted); font-family: 'DM Sans', sans-serif;
       font-size: 10px; font-weight: 300; letter-spacing: .16em; text-transform: uppercase;
       padding: 10px 8px; cursor: pointer; outline: none;
       transition: background .2s ease, border-color var(--trans), color var(--trans);
     }
-    .sidebar-foot-btn:hover { border-color: rgba(255,255,255,.25); color: var(--tx); }
+    .sidebar-foot-btn:hover { border-color: transparent; background: rgba(var(--cloud-e-rgb), .1); color: var(--tx); }
     .sidebar-foot-btn:disabled {
       opacity: .38;
       cursor: default;
-      border-color: rgba(255,255,255,.06);
+      border-color: transparent;
       color: var(--muted);
     }
     .sidebar-foot-btn:disabled:hover {
-      border-color: rgba(255,255,255,.06);
+      border-color: transparent;
       color: var(--muted);
     }
 
@@ -1024,7 +1022,7 @@
       right: 24px;
       width: 32px; height: 32px;
       display: flex; align-items: center; justify-content: center;
-      border: 1px solid rgba(var(--cloud-e-rgb), .28);
+      border: 1px solid transparent;
       border-radius: 8px;
       background: rgba(var(--bg-a-rgb), .18);
       color: var(--muted);
@@ -1034,7 +1032,7 @@
       transition: background .18s ease, border-color .18s ease, color .18s ease;
     }
     .panel-close:hover {
-      border-color: rgba(var(--cloud-e-rgb), .5);
+      border-color: transparent;
       background: rgba(var(--cloud-e-rgb), .1);
       color: var(--tx);
     }
@@ -1252,7 +1250,7 @@
 
     /* ── NAME CURRENT SESSION ── */
     .name-current {
-      padding: 12px 28px; border-bottom: 1px solid var(--panel-line); flex-shrink: 0;
+      padding: 12px 28px; border-bottom: none; flex-shrink: 0;
       display: flex; align-items: center; gap: 10px;
     }
     .name-current input {
@@ -1606,7 +1604,7 @@
       height: 36px;
       padding: 0;
       background: rgba(var(--bg-a-rgb), .22);
-      border-color: rgba(var(--cloud-e-rgb), .34);
+      border-color: transparent;
       opacity: .34;
       backdrop-filter: none;
       -webkit-app-region: no-drag;
@@ -1741,7 +1739,7 @@
   <div class="app-chrome-title">
     <img class="app-chrome-mark" src="./assets/icon-192.png" width="36" height="36" alt="" aria-hidden="true" />
     <span id="appChromeTitle">Nimbus</span>
-    <span class="app-chrome-version" id="appChromeVersion">1.2.12</span>
+    <span class="app-chrome-version" id="appChromeVersion">1.2.13</span>
   </div>
   <div class="app-chrome-status" id="appChromeStatus">Focus session</div>
 </header>
@@ -1901,7 +1899,7 @@
 <aside class="settings-panel" id="settingsPanel" aria-hidden="true">
   <div class="settings-header">
     <div class="settings-title">Settings</div>
-    <div class="settings-subtitle" id="settingsVersion">Version 1.2.12</div>
+    <div class="settings-subtitle" id="settingsVersion">Version 1.2.13</div>
     <button class="panel-close" id="settingsCloseBtn" type="button" aria-label="Close settings">&times;</button>
   </div>
 
@@ -2000,6 +1998,14 @@ const DEFAULT_PREFERENCES = {
   adaptiveCanvasResize: true,
 };
 const VERSION_HISTORY = [
+  {
+    version: '1.2.13',
+    date: '2026-04-26',
+    changes: [
+      'Removed visible container outlines around focus controls, popout controls, and session history.',
+      'Cleaned up the layered divider lines in the session log metrics and history sections.'
+    ]
+  },
   {
     version: '1.2.12',
     date: '2026-04-26',
@@ -3119,7 +3125,7 @@ function buildWebPictureInPictureWindow(pipWindow) {
         display: grid;
         place-items: center;
         padding: 0;
-        border: 1px solid rgba(var(--pip-accent-rgb), .34);
+        border: 1px solid transparent;
         border-radius: 8px;
         background: rgba(0,0,0,.16);
         color: var(--pip-tx);
@@ -3134,7 +3140,7 @@ function buildWebPictureInPictureWindow(pipWindow) {
         opacity: 1;
         transform: translateY(-1px);
         background: rgba(var(--pip-accent-rgb), .1);
-        border-color: rgba(var(--pip-accent-rgb), .58);
+        border-color: transparent;
       }
       .pip-popin-mark {
         position: relative;

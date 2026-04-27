@@ -23,10 +23,10 @@ Nimbus currently ships desktop clients for macOS and Windows. iPhone and iPad bu
 
 | Platform | Download |
 | --- | --- |
-| macOS Apple Silicon | [Download DMG](https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-1.2.12-mac-arm64.dmg) |
-| macOS Intel | [Download DMG](https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-1.2.12-mac-x64.dmg) |
-| Windows x64 | [Download Installer](https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-Setup-1.2.12-x64.exe) |
-| Windows x64 Portable | [Download Portable EXE](https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-Portable-1.2.12-x64.exe) |
+| macOS Apple Silicon | [Download DMG](https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-1.2.13-mac-arm64.dmg) |
+| macOS Intel | [Download DMG](https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-1.2.13-mac-x64.dmg) |
+| Windows x64 | [Download Installer](https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-Setup-1.2.13-x64.exe) |
+| Windows x64 Portable | [Download Portable EXE](https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-Portable-1.2.13-x64.exe) |
 
 All release files are available on the [latest Nimbus release](https://github.com/murderszn/nimbus/releases/latest).
 
