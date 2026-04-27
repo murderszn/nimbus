@@ -1,0 +1,54 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      ".firebase",
+      ".firebase/**",
+      ".git",
+      ".git/**",
+      ".github",
+      ".github/**",
+      ".DS_Store",
+      "**/.*",
+      "**/.*/**",
+      "**/node_modules/**",
+      "public/**",
+      "desktop/**",
+      "scripts/**",
+      "dist/**",
+      "release/**",
+      "out/**",
+      "build/**",
+      "package.json",
+      "package-lock.json",
+      "README.md",
+      "npm-debug.log*",
+      "yarn-debug.log*",
+      "yarn-error.log*"
+    ],
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "headers": [
+      {
+        "source": "**/*.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "/assets/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=3600"
+          }
+        ]
+      }
+    ]
+  }
+}

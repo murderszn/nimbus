@@ -10,6 +10,7 @@
     "dev": "electron . --dev",
     "check": "node --check desktop/main.js && node --check desktop/preload.js && node --check scripts/generate-icons.js",
     "icons": "node scripts/generate-icons.js",
+    "deploy:web": "firebase deploy --only hosting",
     "package": "electron-builder --dir --publish never",
     "dist": "electron-builder --publish never",
     "dist:mac": "electron-builder --mac --publish never",
