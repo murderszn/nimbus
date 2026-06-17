@@ -93,6 +93,8 @@
       --main-shift: 0px;
       --log-shift: 0px;
       --raise: 0px;
+      --timer-gauge-w: clamp(260px, 38vw, 460px);
+      --timer-font-size: clamp(92px, 17vw, 236px);
     }
 
     html, body { width: 100%; height: 100%; overflow: hidden; }
@@ -239,9 +241,9 @@
     }
 
     .time-gauge {
-      width: clamp(260px, 38vw, 460px);
+      width: var(--timer-gauge-w);
       height: auto;
-      margin-bottom: -4px;
+      margin-bottom: calc(var(--timer-gauge-w) * -0.09);
       overflow: visible;
       opacity: .92;
       filter: drop-shadow(0 0 28px rgba(var(--cloud-e-rgb),.22));
@@ -284,7 +286,7 @@
       align-items: baseline;
       justify-content: center;
       font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(92px, 17vw, 236px); font-weight: 400;
+      font-size: var(--timer-font-size); font-weight: 400;
       letter-spacing: .025em; line-height: 1.02; color: var(--tx);
       font-variant-numeric: tabular-nums;
       max-width: 94vw;
@@ -1293,6 +1295,8 @@
         --scene-bottom: 220px;
         --controls-bottom: 28px;
         --sidebar-w: min(320px, 90vw);
+        --timer-gauge-w: min(88vw, 330px);
+        --timer-font-size: clamp(80px, 24vw, 112px);
       }
       body.sidebar-open,
       body.settings-open {
@@ -1300,12 +1304,7 @@
         --log-shift: 0px;
       }
       .time-display {
-        font-size: clamp(80px, 24vw, 112px);
         letter-spacing: .01em;
-      }
-      .time-gauge {
-        width: min(88vw, 330px);
-        margin-bottom: -4px;
       }
       .wordmark {
         top: 70px;
@@ -1388,17 +1387,14 @@
       :root {
         --scene-bottom: 178px;
         --controls-bottom: 18px;
+        --timer-gauge-w: min(86vw, 280px);
+        --timer-font-size: clamp(74px, 22vw, 98px);
       }
       .scene {
         justify-content: flex-start;
         padding-top: 112px;
       }
       .time-wrap { gap: 8px; }
-      .time-display { font-size: clamp(74px, 22vw, 98px); }
-      .time-gauge {
-        width: min(86vw, 280px);
-        margin-bottom: -4px;
-      }
       .controls {
         gap: 12px;
       }
@@ -1432,6 +1428,10 @@
     }
 
     @media (max-width: 360px) {
+      :root {
+        --timer-gauge-w: min(90vw, 260px);
+        --timer-font-size: clamp(70px, 24vw, 88px);
+      }
       .wordmark {
         top: 68px;
         font-size: 12px;
@@ -1446,6 +1446,8 @@
         --scene-top: 76px;
         --scene-bottom: 28px;
         --controls-bottom: 28px;
+        --timer-gauge-w: min(34vw, 260px);
+        --timer-font-size: clamp(72px, 16vh, 108px);
       }
       body.sidebar-open,
       body.settings-open {
@@ -1457,13 +1459,6 @@
         padding: var(--scene-top) 0 var(--scene-bottom);
       }
       body.sidebar-open .scene { right: calc(46% + var(--sidebar-w)); }
-      .time-gauge {
-        width: min(34vw, 260px);
-        margin-bottom: -2px;
-      }
-      .time-display {
-        font-size: clamp(72px, 16vh, 108px);
-      }
       .mode-label { font-size: 10px; letter-spacing: .22em; }
       .session-name-display { font-size: 14px; }
       .session-done-msg { font-size: 15px; }
@@ -1521,12 +1516,9 @@
         padding-bottom: 150px;
       }
       body.sidebar-open .time-wrap { gap: 6px; }
-      body.sidebar-open .time-gauge {
-        width: 180px;
-        margin-bottom: -2px;
-      }
-      body.sidebar-open .time-display {
-        font-size: 56px;
+      body.sidebar-open {
+        --timer-gauge-w: 180px;
+        --timer-font-size: 56px;
       }
       body.sidebar-open .mode-label {
         font-size: 9px;
@@ -1570,6 +1562,8 @@
       --scene-top: 0px;
       --scene-bottom: 0px;
       --controls-bottom: 0px;
+      --timer-gauge-w: clamp(200px, 80vw, 304px);
+      --timer-font-size: clamp(72px, 25vw, 98px);
       min-width: 280px;
       min-height: 280px;
       -webkit-app-region: drag;
@@ -1599,14 +1593,14 @@
       transform: translateY(-2px);
     }
     body.popout-mode .time-gauge {
-      width: 304px;
+      width: var(--timer-gauge-w);
       max-width: calc(100vw - 36px);
-      margin-bottom: 0;
+      margin-bottom: calc(var(--timer-gauge-w) * -0.09);
       opacity: .98;
       transform: none;
     }
     body.popout-mode .time-display {
-      font-size: 98px;
+      font-size: var(--timer-font-size);
       line-height: 1.02;
       letter-spacing: .025em;
       max-width: calc(100vw - 24px);
@@ -1654,23 +1648,15 @@
       display: none;
     }
     @media (min-width: 390px) and (min-height: 380px) {
-      body.popout-mode .time-gauge {
-        width: 332px;
-      }
-      body.popout-mode .time-display {
-        font-size: 108px;
+      body.popout-mode {
+        --timer-gauge-w: 332px;
+        --timer-font-size: 108px;
       }
     }
     @media (max-width: 330px), (max-height: 320px) {
-      body.popout-mode .scene {
-        padding: 14px 12px 18px;
-      }
-      body.popout-mode .time-gauge {
-        width: 260px;
-        max-width: calc(100vw - 28px);
-      }
-      body.popout-mode .time-display {
-        font-size: 82px;
+      body.popout-mode {
+        --timer-gauge-w: clamp(200px, 80vw, 260px);
+        --timer-font-size: clamp(64px, 24vw, 82px);
       }
       body.popout-mode .popout-toggle {
         right: 10px;
@@ -1742,12 +1728,149 @@
       display: flex;
     }
     @media (max-width: 560px) {
-      body.zen-mode .time-gauge {
-        width: min(90vw, 390px);
+      body.zen-mode {
+        --timer-gauge-w: min(90vw, 390px);
+        --timer-font-size: clamp(78px, 21vw, 112px);
       }
-      body.zen-mode .time-display {
-        font-size: clamp(78px, 21vw, 112px);
+    }
+
+    /* ── HEIGHT RESPONSIVENESS (Prevent overlaps on short screens) ── */
+    @media (max-height: 720px) {
+      :root {
+        --scene-top: 80px;
+        --scene-bottom: 180px;
+        --controls-bottom: 20px;
+        --timer-gauge-w: clamp(220px, 25vh, 360px);
+        --timer-font-size: clamp(76px, 14vh, 160px);
       }
+    }
+    @media (max-height: 600px) {
+      :root {
+        --scene-top: 60px;
+        --scene-bottom: 140px;
+        --controls-bottom: 12px;
+        --top-y: 16px;
+        --timer-gauge-w: clamp(180px, 22vh, 300px);
+        --timer-font-size: clamp(64px, 12vh, 120px);
+      }
+    }
+    @media (max-height: 480px) {
+      :root {
+        --scene-top: 40px;
+        --scene-bottom: 100px;
+        --controls-bottom: 8px;
+        --top-y: 12px;
+        --timer-gauge-w: clamp(160px, 20vh, 240px);
+        --timer-font-size: clamp(56px, 10vh, 98px);
+      }
+      .controls {
+        gap: 12px !important;
+      }
+      .main-btn, .ghost-btn {
+        height: 34px !important;
+        font-size: 10px !important;
+      }
+      .pill {
+        height: 28px !important;
+        font-size: 8px !important;
+      }
+      .control-tools {
+        min-height: 28px !important;
+      }
+      .theme-toggle, .download-toggle {
+        height: 28px !important;
+        font-size: 8px !important;
+      }
+    }
+
+    /* ── POPPED OUT PLACEHOLDER (Show when timer is open in separate window) ── */
+    .popped-out-placeholder {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 28px;
+      border: 1px dashed var(--panel-line);
+      border-radius: 16px;
+      background: rgba(var(--bg-b-rgb), 0.22);
+      -webkit-backdrop-filter: blur(16px) saturate(160%);
+      backdrop-filter: blur(16px) saturate(160%);
+      width: min(90vw, 340px);
+      text-align: center;
+      z-index: 10;
+      animation: placeholderFadeIn 0.3s ease;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24);
+    }
+    body.timer-is-popped-out .time-wrap {
+      display: none !important;
+    }
+    body.timer-is-popped-out .popped-out-placeholder {
+      display: flex;
+    }
+    .popped-out-icon {
+      position: relative;
+      width: 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--cloud-e);
+      margin-bottom: 8px;
+    }
+    .popped-out-ring {
+      position: absolute;
+      inset: 0;
+      border: 1.5px dashed rgba(var(--cloud-e-rgb), 0.3);
+      border-radius: 50%;
+      animation: poppedOutSpin 16s linear infinite;
+    }
+    .popped-out-title {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--tx);
+      margin-bottom: 4px;
+    }
+    .popped-out-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 16px;
+      font-weight: 300;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 16px;
+    }
+    .popped-out-btn {
+      height: 34px;
+      padding: 0 18px;
+      background: rgba(var(--cloud-e-rgb), 0.08);
+      border: 1px solid rgba(var(--cloud-e-rgb), 0.28);
+      border-radius: 8px;
+      color: var(--tx);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      outline: none;
+      transition: background 0.2s, border-color 0.2s, transform 0.2s;
+    }
+    .popped-out-btn:hover {
+      background: rgba(var(--cloud-e-rgb), 0.18);
+      border-color: var(--cloud-e);
+      transform: translateY(-1px);
+    }
+    .popped-out-btn:active {
+      transform: translateY(0);
+    }
+    @keyframes poppedOutSpin {
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes placeholderFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
@@ -1757,7 +1880,7 @@
   <div class="app-chrome-title">
     <img class="app-chrome-mark" src="./assets/icon-192.png" width="36" height="36" alt="" aria-hidden="true" />
     <span id="appChromeTitle">Nimbus</span>
-    <span class="app-chrome-version" id="appChromeVersion">1.2.14</span>
+    <span class="app-chrome-version" id="appChromeVersion">1.2.15</span>
   </div>
   <div class="app-chrome-status" id="appChromeStatus">Focus session</div>
 </header>
@@ -1777,6 +1900,19 @@
     <div class="mode-label" id="modeLabel">Focus session</div>
     <div class="session-name-display" id="sessionNameDisplay"></div>
     <div class="session-done-msg" id="doneMsg">Session complete — breathe</div>
+  </div>
+  <div class="popped-out-placeholder" id="poppedOutPlaceholder">
+    <div class="popped-out-icon" aria-hidden="true">
+      <div class="popped-out-ring"></div>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 3h6v6"></path>
+        <path d="M10 14 21 3"></path>
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+      </svg>
+    </div>
+    <div class="popped-out-title">Timer Popped Out</div>
+    <div class="popped-out-text">Active session in external window</div>
+    <button class="popped-out-btn" id="poppedOutReturnBtn" type="button">Pop Back In</button>
   </div>
 </div>
 
@@ -1917,7 +2053,7 @@
 <aside class="settings-panel" id="settingsPanel" aria-hidden="true">
   <div class="settings-header">
     <div class="settings-title">Settings</div>
-    <div class="settings-subtitle" id="settingsVersion">Version 1.2.14</div>
+    <div class="settings-subtitle" id="settingsVersion">Version 1.2.15</div>
     <button class="panel-close" id="settingsCloseBtn" type="button" aria-label="Close settings">&times;</button>
   </div>
 
@@ -2167,6 +2303,16 @@ const DEFAULT_PREFERENCES = {
   adaptiveCanvasResize: true,
 };
 const VERSION_HISTORY = [
+  {
+    version: '1.2.15',
+    date: '2026-06-16',
+    changes: [
+      'Scaled timer and gauge dimensions responsively using dynamic CSS custom properties.',
+      'Added height media queries to adjust layout and prevent overlap on short viewports.',
+      'Fixed standard browser popout and Web PiP modes to display a placeholder and prevent duplicate running timers.',
+      'Corrected popout button and hotkey behavior to toggle and close the detached window.'
+    ]
+  },
   {
     version: '1.2.14',
     date: '2026-06-16',
@@ -3119,6 +3265,11 @@ function handleSyncMessage(message) {
   }
   if(message.type === 'focus-main' && !IS_POPOUT) {
     window.focus();
+    if(popoutWindow) {
+      try { popoutWindow.close(); } catch(e) {}
+      popoutWindow = null;
+    }
+    updatePopoutStateClass();
   }
 }
 
@@ -3168,6 +3319,7 @@ function closeWebPictureInPicture({ focusMain = true } = {}) {
   webPipGaugeLength = 0;
   lastWebPipSignature = '';
   if(focusMain) window.focus();
+  updatePopoutStateClass();
 }
 
 function buildWebPictureInPictureWindow(pipWindow) {
@@ -3428,6 +3580,7 @@ function buildWebPictureInPictureWindow(pipWindow) {
       webPipWindow = null;
       webPipGaugeLength = 0;
       lastWebPipSignature = '';
+      updatePopoutStateClass();
     }
   });
 }
@@ -3445,6 +3598,7 @@ async function openWebPictureInPicture() {
     buildWebPictureInPictureWindow(pipWindow);
     renderWebPictureInPicture(true);
     pipWindow.focus();
+    updatePopoutStateClass();
   } catch(e) {
     openBrowserPopoutWindow();
   }
@@ -3515,6 +3669,30 @@ async function openPopoutWindow() {
   openBrowserPopoutWindow();
 }
 
+function updatePopoutStateClass() {
+  if (IS_POPOUT) return;
+  const isPoppedOut = (popoutWindow && !popoutWindow.closed) || webPictureInPictureOpen();
+  const body = document.body;
+  const wasPoppedOut = body.classList.contains('timer-is-popped-out');
+  if (isPoppedOut !== wasPoppedOut) {
+    body.classList.toggle('timer-is-popped-out', isPoppedOut);
+    if (!isPoppedOut) {
+      updateUI();
+    }
+  }
+}
+
+function returnTimerToMain() {
+  if (webPictureInPictureOpen()) {
+    closeWebPictureInPicture();
+  }
+  if (popoutWindow && !popoutWindow.closed) {
+    popoutWindow.close();
+    popoutWindow = null;
+  }
+  updatePopoutStateClass();
+}
+
 function openBrowserPopoutWindow() {
   const url = new URL(window.location.href);
   url.searchParams.set('popout', '1');
@@ -3537,6 +3715,12 @@ function openBrowserPopoutWindow() {
   if(popoutWindow) {
     popoutWindow.focus();
     setTimeout(broadcastTimerState, 200);
+    try {
+      popoutWindow.addEventListener('pagehide', () => {
+        setTimeout(updatePopoutStateClass, 100);
+      });
+    } catch(e) {}
+    updatePopoutStateClass();
   } else {
     alert('Allow popups for this page to open the detached timer.');
   }
@@ -3569,6 +3753,12 @@ function togglePopoutWindow() {
   }
   if(webPictureInPictureOpen()) {
     closeWebPictureInPicture();
+    return;
+  }
+  if(popoutWindow && !popoutWindow.closed) {
+    popoutWindow.close();
+    popoutWindow = null;
+    updatePopoutStateClass();
     return;
   }
   openPopoutWindow();
@@ -3958,6 +4148,8 @@ document.getElementById('resetBtn').addEventListener('click', resetCurrentTimer)
 document.getElementById('stopBtn').addEventListener('click', clearCurrentCycle);
 
 document.getElementById('popoutToggle').addEventListener('click', togglePopoutWindow);
+
+document.getElementById('poppedOutReturnBtn').addEventListener('click', returnTimerToMain);
 
 document.getElementById('zenToggle').addEventListener('click', toggleZenMode);
 
@@ -4507,6 +4699,7 @@ renderDownloadLinks();
 initializeDesktopIntegration();
 resize();
 requestAnimationFrame(draw);
+setInterval(updatePopoutStateClass, 500);
 updateUI();
 </script>
 </body>
