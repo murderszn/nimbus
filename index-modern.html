@@ -1,0 +1,2134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nimbus — Cinematic Focus Workspace & Desktop Timer</title>
+  <meta name="description" content="Nimbus is a cinematic, storm-themed Pomodoro timer for macOS, Windows, and the web. Ride the gauge, track focus sessions, and install instantly via CLI." />
+  <meta name="keywords" content="Nimbus, Pomodoro timer, focus timer, developer tool, Claude Code style, CLI downloader, Mac focus, Windows productivity" />
+  <meta name="application-name" content="Nimbus" />
+  <meta name="apple-mobile-web-app-title" content="Nimbus" />
+  <meta name="theme-color" content="#020617" />
+  <meta name="robots" content="index, follow" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Nimbus" />
+  <meta property="og:title" content="Nimbus — Focus space for creators & developers" />
+  <meta property="og:description" content="A cinematic, storm-lit Pomodoro timer with local history, Zen mode, and desktop client downloads." />
+  <meta property="og:image" content="https://raw.githubusercontent.com/murderszn/nimbus/main/assets/social-post.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Nimbus — Focus space for creators & developers" />
+  <meta name="twitter:description" content="A cinematic, storm-lit Pomodoro timer with local history, Zen mode, and desktop client downloads." />
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/murderszn/nimbus/main/assets/social-post.png" />
+  
+  <link rel="icon" href="./assets/icon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png" />
+  <link rel="manifest" href="./assets/site.webmanifest" />
+  
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Nimbus",
+      "applicationCategory": "ProductivityApplication",
+      "operatingSystem": "macOS, Windows, Web",
+      "softwareVersion": "1.2.13",
+      "description": "Nimbus is a storm-lit Pomodoro timer with desktop downloads for macOS and Windows, local session metrics, and a minimal Zen mode.",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    }
+  </script>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Geist and Geist Mono for the developer/CLI aesthetic, Cormorant Garamond for the cinematic editorial vibe -->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  
+  <style>
+    /* ── Core Reset & Variables ── */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'Geist Mono', monospace;
+      --font-serif: 'Cormorant Garamond', Georgia, serif;
+      
+      /* Pure Dark Palette */
+      --bg: #000000;
+      --carbon-light: #0d0d12;
+      --carbon-medium: #13131a;
+      --carbon-border: rgba(255, 255, 255, 0.08);
+      --carbon-border-hover: rgba(255, 255, 255, 0.18);
+      
+      /* Colors & Glows */
+      --electric-cyan: #06b6d4;
+      --electric-blue: #3b82f6;
+      --tempest-purple: #8b5cf6;
+      --mint: #10b981;
+      --amber: #f59e0b;
+      
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-quiet: #6b7280;
+      
+      --max-width: 1200px;
+      color-scheme: dark;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100%;
+      font-family: var(--font-sans);
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background: var(--bg);
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    /* ── Canvas Layer & Backdrop ── */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.85;
+    }
+
+    #vignette {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 50%, transparent 20%, rgba(0, 0, 0, 0.6) 80%, rgba(0, 0, 0, 0.95) 100%);
+    }
+
+    #grain {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      opacity: 0.02;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    #content-wrapper {
+      position: relative;
+      z-index: 10;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+
+
+    /* ── Hero Section ── */
+    .hero {
+      padding: 120px 24px 80px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hero-inner {
+      max-width: 840px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hero-kicker {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hero-kicker::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.6);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      animation: pulse 2s infinite;
+    }
+
+    .hero h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(3.2rem, 8vw, 6.2rem);
+      font-weight: 300;
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      color: #fff;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 span.highlight {
+      font-style: italic;
+      font-weight: 400;
+      background: linear-gradient(135deg, #fff, rgba(255,255,255,0.45));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero h1 span.gradient {
+      background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.5));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-desc {
+      font-size: 1.15rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+      max-width: 620px;
+      margin-bottom: 40px;
+      font-weight: 300;
+    }
+
+    /* ── Terminal Installer Widget ── */
+    .terminal-window {
+      width: min(720px, 100%);
+      background: rgba(255, 255, 255, 0.08);
+      -webkit-backdrop-filter: blur(26px) saturate(180%);
+      backdrop-filter: blur(26px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+      text-align: left;
+      margin-bottom: 32px;
+      transition: border-color 0.3s ease, background 0.3s ease;
+    }
+
+    .terminal-window:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .terminal-header {
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .terminal-controls {
+      display: flex;
+      gap: 6px;
+    }
+
+    .terminal-control {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+
+    .control-close { background: #ff5f56; }
+    .control-min { background: #ffbd2e; }
+    .control-max { background: #27c93f; }
+
+    .terminal-tabs {
+      display: flex;
+      gap: 4px;
+      margin-left: 20px;
+    }
+
+    .terminal-tab {
+      padding: 4px 12px;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      color: rgba(255, 255, 255, 0.5);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: transparent;
+      border: none;
+    }
+
+    .terminal-tab.active {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+      font-weight: 500;
+    }
+
+    .terminal-tab:hover:not(.active) {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .terminal-title {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-quiet);
+      letter-spacing: 0.02em;
+    }
+
+    .terminal-body {
+      padding: 20px 24px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      color: var(--text-main);
+    }
+
+    .terminal-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      line-height: 1.6;
+    }
+
+    .prompt-symbol {
+      color: rgba(255, 255, 255, 0.6);
+      user-select: none;
+    }
+
+    .command-text {
+      color: #fff;
+      word-break: break-all;
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      color: rgba(255, 255, 255, 0.6);
+      padding: 6px 12px;
+      font-size: 0.7rem;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    .copy-btn.copied {
+      border-color: rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--mint);
+    }
+
+    .simulate-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      color: rgba(255, 255, 255, 0.7);
+      padding: 6px 12px;
+      font-size: 0.7rem;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .simulate-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    .terminal-output {
+      border-top: 1px dashed rgba(255, 255, 255, 0.1);
+      margin-top: 10px;
+      padding-top: 16px;
+      font-size: 0.78rem;
+      line-height: 1.8;
+      color: var(--text-muted);
+      overflow-y: auto;
+      flex-grow: 1;
+      display: none;
+    }
+
+    .terminal-output.active {
+      display: block;
+    }
+
+    .log-success { color: var(--mint); }
+    .log-info { color: var(--electric-blue); }
+    .log-warning { color: var(--amber); }
+
+    /* ── Platforms Grid & Mouse Glow Effect ── */
+    .section {
+      padding: 100px 24px;
+      width: min(var(--max-width), 100%);
+      margin: 0 auto;
+    }
+
+    .section-kicker {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-family: var(--font-serif);
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 300;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      letter-spacing: -0.01em;
+    }
+
+    .section-title span.glow-accent {
+      font-style: italic;
+      background: linear-gradient(to right, #fff, var(--text-muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      max-width: 600px;
+      margin-bottom: 48px;
+      font-size: 1rem;
+      font-weight: 300;
+      line-height: 1.6;
+    }
+
+    .glow-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .glow-card {
+      position: relative;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      -webkit-backdrop-filter: blur(26px) saturate(180%);
+      backdrop-filter: blur(26px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 32px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 250px;
+      transition: border-color 0.3s ease, transform 0.3s ease, background 0.3s ease;
+    }
+
+    .glow-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle 200px at var(--mouse-x, 0) var(--mouse-y, 0), rgba(255, 255, 255, 0.06), transparent 85%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .glow-card:hover::before {
+      opacity: 1;
+    }
+
+    .glow-card:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.18);
+      transform: translateY(-2px);
+    }
+
+    .glow-card .card-badge {
+      display: inline-block;
+      align-self: flex-start;
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 20px;
+      border: 1px solid rgba(var(--c), 0.2);
+      color: rgb(var(--c));
+      background: rgba(var(--c), 0.06);
+    }
+
+    .glow-card h3 {
+      font-size: 1.25rem;
+      font-weight: 500;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+
+    .glow-card p {
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      font-weight: 300;
+    }
+
+    .glow-card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    .glow-card ul li {
+      position: relative;
+      padding-left: 18px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .glow-card ul li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgb(var(--c));
+      box-shadow: 0 0 6px rgb(var(--c));
+    }
+
+    .glow-card:nth-child(1) { --c: 6, 182, 212; }
+    .glow-card:nth-child(2) { --c: 59, 130, 246; }
+    .glow-card:nth-child(3) { --c: 16, 185, 129; }
+
+    /* ── Pomodoro Interactive Sandbox Section ── */
+    .sandbox-split {
+      display: grid;
+      grid-template-columns: 1fr 440px;
+      gap: 60px;
+      align-items: center;
+    }
+
+    /* Beautiful Glass Mock Timer Widget */
+    .mock-app-widget {
+      --w-glow-x: 50%;
+      --w-glow-y: 0%;
+      --w-accent: var(--electric-cyan);
+      position: relative;
+      width: 340px;
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.08);
+      -webkit-backdrop-filter: blur(26px) saturate(180%);
+      backdrop-filter: blur(26px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .mock-app-widget:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .mock-app-widget::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at var(--w-glow-x, 50%) var(--w-glow-y, 0%), rgba(var(--w-glow-color, 6, 182, 212), 0.15), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      transition: background 0.5s ease;
+    }
+
+    /* Themes definitions for sandbox */
+    .mock-app-widget.theme-focus {
+      --w-glow-color: 6, 182, 212;
+      --w-accent: var(--electric-cyan);
+    }
+    .mock-app-widget.theme-short-break {
+      --w-glow-color: 16, 185, 129;
+      --w-accent: var(--mint);
+    }
+    .mock-app-widget.theme-long-break {
+      --w-glow-color: 245, 158, 11;
+      --w-accent: var(--amber);
+    }
+    .mock-app-widget.theme-abyss {
+      --w-glow-color: 139, 92, 246;
+      --w-accent: var(--tempest-purple);
+      background: #020205;
+      border-color: rgba(255,255,255,0.03);
+    }
+
+    .widget-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-quiet);
+      z-index: 10;
+      transition: opacity 0.3s ease;
+    }
+
+    .widget-logo {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .widget-timer-container {
+      position: relative;
+      width: 250px;
+      height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .widget-gauge-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .widget-gauge-track {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.04);
+      stroke-width: 1.5;
+    }
+
+    .widget-gauge-progress {
+      fill: none;
+      stroke: var(--w-accent);
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      stroke-dasharray: 565.48; /* Circumference of r=90 */
+      stroke-dashoffset: 565.48;
+      transition: stroke-dashoffset 0.35s ease, stroke 0.5s ease;
+    }
+
+    .widget-time-display {
+      font-family: var(--font-serif);
+      font-size: 3.6rem;
+      font-weight: 300;
+      letter-spacing: 0.02em;
+      color: #fff;
+      transform: translateY(-2px);
+      transition: text-shadow 0.3s ease;
+      text-shadow: 0 0 30px rgba(var(--w-glow-color), 0.3);
+    }
+
+    .widget-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      gap: 16px;
+      z-index: 10;
+      transition: opacity 0.3s ease;
+    }
+
+    .widget-mode-selectors {
+      display: flex;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 3px;
+      border-radius: 99px;
+      gap: 2px;
+    }
+
+    .widget-mode-btn {
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.68rem;
+      padding: 6px 14px;
+      border-radius: 99px;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .widget-mode-btn.active {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .widget-mode-btn:hover:not(.active) {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .widget-action-buttons {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .widget-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 99px;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .widget-btn:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      transform: scale(1.05);
+    }
+
+    .widget-btn-play {
+      background: rgba(255, 255, 255, 0.9);
+      color: #000;
+      border-color: transparent;
+      width: 52px;
+      height: 52px;
+    }
+
+    .widget-btn-play:hover {
+      background: #fff;
+      border-color: transparent;
+    }
+
+    .widget-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    .widget-footer {
+      width: 100%;
+      text-align: center;
+      z-index: 10;
+      transition: opacity 0.3s ease;
+    }
+
+    .widget-task-input {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      width: 70%;
+      padding: 6px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      outline: none;
+      transition: border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .widget-task-input:focus {
+      border-color: var(--w-accent);
+      color: #fff;
+    }
+
+    /* Zen Mode State for Widget */
+    .mock-app-widget.zen-mode {
+      height: 360px;
+      overflow: hidden;
+    }
+    .mock-app-widget.zen-mode .widget-header,
+    .mock-app-widget.zen-mode .widget-controls .widget-mode-selectors,
+    .mock-app-widget.zen-mode .widget-controls .widget-action-buttons .widget-btn-reset,
+    .mock-app-widget.zen-mode .widget-controls .widget-action-buttons .widget-btn-zen,
+    .mock-app-widget.zen-mode .widget-footer {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .mock-app-widget.zen-mode .widget-controls {
+      gap: 0;
+    }
+
+    .widget-shader-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .mock-app-widget.zen-mode .widget-shader-canvas {
+      opacity: 1;
+    }
+
+    /* ── The Technique / Explanation Section ── */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-top: 40px;
+    }
+
+    .step-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--carbon-border);
+      border-radius: 12px;
+      padding: 28px;
+      transition: all 0.3s ease;
+    }
+
+    .step-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .step-number {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .step-card h4 {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .step-card p {
+      font-size: 0.82rem;
+      line-height: 1.55;
+      color: var(--text-muted);
+      font-weight: 300;
+    }
+
+    /* ── Downloads Table/Grid Section ── */
+    .downloads-container {
+      background: rgba(10, 10, 15, 0.6);
+      border: 1px solid var(--carbon-border);
+      border-radius: 14px;
+      padding: 40px;
+      margin-top: 40px;
+    }
+
+    .downloads-header-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid var(--carbon-border);
+      padding-bottom: 24px;
+      margin-bottom: 24px;
+    }
+
+    .downloads-header-inner h3 {
+      font-family: var(--font-serif);
+      font-size: 1.8rem;
+      font-weight: 300;
+    }
+
+    .downloads-grid-layout {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .dl-platform-col h4 {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-quiet);
+      margin-bottom: 16px;
+    }
+
+    .dl-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--carbon-border);
+      padding: 16px 20px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #fff;
+      margin-bottom: 12px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .dl-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--carbon-border-hover);
+      transform: translateY(-1px);
+    }
+
+    .dl-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    .dl-btn .dl-meta {
+      font-size: 0.68rem;
+      font-family: var(--font-mono);
+      color: var(--text-quiet);
+      margin-left: auto;
+    }
+
+    .dl-note {
+      font-size: 0.75rem;
+      color: var(--text-quiet);
+      line-height: 1.5;
+    }
+
+    /* ── FAQ Section ── */
+    .faq-wrapper {
+      max-width: 760px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .faq-item {
+      background: rgba(255, 255, 255, 0.05);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      backdrop-filter: blur(20px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .faq-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+
+    .faq-item.active {
+      border-color: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .faq-item:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .faq-trigger {
+      width: 100%;
+      padding: 20px 24px;
+      background: transparent;
+      border: none;
+      text-align: left;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      outline: none;
+    }
+
+    .faq-trigger svg {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.3s ease;
+      color: var(--text-quiet);
+    }
+
+    .faq-item.active {
+      border-color: rgba(6, 182, 212, 0.2);
+    }
+
+    .faq-item.active .faq-trigger svg {
+      transform: rotate(180deg);
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .faq-panel {
+      padding: 0 24px 20px;
+      display: none;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+      font-weight: 300;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 80px 24px 48px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .footer-inner {
+      width: min(var(--max-width, 1200px), 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2.2fr 1fr 1fr;
+      gap: 64px;
+    }
+
+    .footer-col {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .footer-logo img {
+      width: 26px;
+      height: 26px;
+      opacity: 0.85;
+      transition: opacity 0.2s;
+    }
+
+    .footer-logo:hover img {
+      opacity: 1;
+    }
+
+    .footer-logo span {
+      font-family: var(--font-serif);
+      font-size: 1.25rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 300;
+    }
+
+    .footer-tagline {
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      font-style: italic;
+      color: #fff;
+      font-weight: 300;
+      line-height: 1.4;
+    }
+
+    .footer-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      font-weight: 300;
+      max-width: 340px;
+    }
+
+    .footer-col-title {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      color: rgba(255, 255, 255, 0.35);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      font-weight: 600;
+    }
+
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .footer-col ul li a {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .footer-col ul li a:hover {
+      color: #fff;
+      transform: translateX(4px);
+    }
+
+    .footer-col ul li a svg {
+      opacity: 0;
+      transform: translateX(-4px);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      color: #fff;
+    }
+
+    .footer-col ul li a:hover svg {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .footer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      color: rgba(255, 255, 255, 0.6);
+      width: fit-content;
+    }
+
+    .footer-badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulse 2s infinite alternate;
+    }
+
+    .footer-bottom {
+      grid-column: 1 / -1;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 32px;
+      margin-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.76rem;
+      color: var(--text-quiet);
+    }
+
+    .footer-bottom-left {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .footer-icons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .footer-icons a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.5);
+      transition: all 0.25s ease;
+    }
+
+    .footer-icons a:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.18);
+      transform: translateY(-1px);
+    }
+
+    /* ── Keyframes & Utilities ── */
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.15); box-shadow: 0 0 16px rgba(255, 255, 255, 0.3); }
+    }
+
+    @keyframes fadeUp {
+      0% { opacity: 0; transform: translateY(12px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-fade-up {
+      animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    /* ── Responsive Rules ── */
+    @media (max-width: 960px) {
+      .glow-grid {
+        grid-template-columns: 1fr;
+      }
+      .sandbox-split {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        gap: 40px;
+      }
+      .sandbox-text-side {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .downloads-grid-layout {
+        grid-template-columns: 1fr;
+      }
+      .steps-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .hero {
+        padding: 80px 18px 40px;
+      }
+      .hero h1 {
+        font-size: clamp(2.2rem, 10vw, 3.4rem);
+      }
+      .terminal-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .terminal-tabs {
+        margin-left: 0;
+      }
+      .terminal-body {
+        padding: 16px;
+        font-size: 0.78rem;
+      }
+
+      .section {
+        padding: 60px 18px;
+      }
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
+      .footer-inner {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      .footer-col {
+        align-items: center;
+        text-align: center;
+      }
+      .footer-desc {
+        max-width: 100%;
+      }
+      .footer-col ul {
+        align-items: center;
+      }
+      .footer-col ul li a:hover {
+        transform: translateY(-2px);
+      }
+      .footer-badge {
+        margin: 0 auto;
+      }
+      .footer-bottom {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+      }
+      .footer-bottom-left {
+        flex-direction: column;
+        gap: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- WebGL Background Canvas -->
+  <canvas id="bg-canvas"></canvas>
+  <div id="vignette"></div>
+  <div id="grain"></div>
+
+  <div id="content-wrapper">
+    <!-- Main Content -->
+    <main>
+      <!-- Hero -->
+      <section class="hero">
+        <div class="hero-inner">
+          <!-- Logo Brand floating center -->
+          <a class="hero-brand animate-fade-up" href="./index.html" style="animation-delay: 0.05s; display: flex; align-items: center; gap: 10px; margin-bottom: 28px; text-decoration: none;">
+            <img src="./assets/icon.png" alt="Nimbus logo" style="width: 34px; height: 34px;" />
+            <span style="font-family: var(--font-serif); font-size: 1.5rem; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 300; color: #fff;">Nimbus</span>
+          </a>
+          <h1 class="animate-fade-up" style="animation-delay: 0.2s;">
+            <span class="highlight">Time is storms.</span><br>
+            Focus in the <span class="gradient">Nimbus</span>.
+          </h1>
+          <p class="hero-desc animate-fade-up" style="animation-delay: 0.3s;">
+            A cinematic, storm-themed Pomodoro timer that lives on your desktop and browser. Zero trackers, zero distraction, and absolute atmospheric focus.
+          </p>
+
+          <!-- Interactive Terminal Installer -->
+          <div class="terminal-window animate-fade-up" style="animation-delay: 0.4s;">
+            <div class="terminal-header">
+              <div class="terminal-controls">
+                <span class="terminal-control control-close"></span>
+                <span class="terminal-control control-min"></span>
+                <span class="terminal-control control-max"></span>
+              </div>
+              <div class="terminal-tabs">
+                <button class="terminal-tab active" data-os="mac">macOS</button>
+                <button class="terminal-tab" data-os="win">Windows</button>
+                <button class="terminal-tab" data-os="manual">Manual Curl</button>
+              </div>
+              <span class="terminal-title">zsh — nimbus-installer</span>
+            </div>
+            <div class="terminal-body">
+              <div class="terminal-line">
+                <span class="prompt-symbol">$</span>
+                <span class="command-text" id="installCommand">curl -fsSL https://raw.githubusercontent.com/murderszn/nimbus/main/install.sh | bash</span>
+                <button class="copy-btn" id="copyBtn">
+                  <span>Copy</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Platforms Grid Section with Glow Halo -->
+      <section class="section" id="platforms">
+        <div class="section-kicker">Multi-Platform Ecosystem</div>
+        <h2 class="section-title">One focus space. <span class="glow-accent">Choose your entry.</span></h2>
+        <p class="section-desc">Start instantly in the browser when you need momentum, or deploy the native clients when it's time for uninterrupted focus.</p>
+
+        <div class="glow-grid">
+          <div class="glow-card">
+            <span class="card-badge">Web Client</span>
+            <h3>Launch In-Browser</h3>
+            <p>Run Nimbus on any device instantly. No setup, no app updates, and identical core timer visuals.</p>
+            <ul>
+              <li>Cloud animation render canvas</li>
+              <li>Local storage session tracking</li>
+              <li>Instant CSV export support</li>
+            </ul>
+          </div>
+          <div class="glow-card">
+            <span class="card-badge">macOS App</span>
+            <h3>Native Apple Client</h3>
+            <p>Runs as a lightweight client in the Applications folder. Includes desktop shortcuts and automatic updater feeds.</p>
+            <ul>
+              <li>Optimized Apple Silicon / Intel DMG</li>
+              <li>Dedicated popout mini-timer window</li>
+              <li>Custom borderless titlebar controls</li>
+            </ul>
+          </div>
+          <div class="glow-card">
+            <span class="card-badge">Windows Client</span>
+            <h3>Desktop Package</h3>
+            <p>Deploy as a standard NSIS installer or run as a standalone portable binary to focus from any directory.</p>
+            <ul>
+              <li>Silent installation options</li>
+              <li>No admin installation package</li>
+              <li>Pin to Taskbar & Start Menu</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Interactive Timer Sandbox Section -->
+      <section class="section" id="sandbox">
+        <div class="sandbox-split">
+          <div class="sandbox-text-side">
+            <div class="section-kicker">Interactive App Sandbox</div>
+            <h2 class="section-title">Experience the app <span class="glow-accent">in real-time.</span></h2>
+            <p class="section-desc">
+              Nimbus brings focus to life with interactive weather dials. Tap play, switch focus modes, modify your current task name, or test the extreme minimalism of Zen mode directly on the page.
+            </p>
+            
+            <div style="display: flex; gap: 12px; margin-top: 16px;">
+              <a class="dl-btn" href="./pomodoro-cloud-v2.html" style="margin: 0; background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15)); border-color: rgba(6, 182, 212, 0.35);">
+                <span>Launch Web Application</span>
+                <span class="dl-meta">PWA</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Glass Pomodoro Timer Widget -->
+          <div class="mock-app-widget theme-focus" id="timerWidget">
+            <canvas class="widget-shader-canvas" id="widgetShaderCanvas"></canvas>
+            <div class="widget-header">
+              <div class="widget-logo">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm-1-13h2v6h-2Zm0 8h2v2h-2Z"/></svg>
+                <span>NIMBUS FOCUS</span>
+              </div>
+              <span id="widgetModeLabel">Focusing</span>
+            </div>
+
+            <div class="widget-timer-container">
+              <svg class="widget-gauge-svg">
+                <circle class="widget-gauge-track" cx="125" cy="125" r="90" />
+                <circle class="widget-gauge-progress" id="timerProgress" cx="125" cy="125" r="90" />
+              </svg>
+              <div class="widget-time-display" id="timerClock">25:00</div>
+            </div>
+
+            <div class="widget-controls">
+              <div class="widget-mode-selectors">
+                <button class="widget-mode-btn active" data-mode="focus">Focus</button>
+                <button class="widget-mode-btn" data-mode="short">Short Break</button>
+                <button class="widget-mode-btn" data-mode="long">Long Break</button>
+                <button class="widget-mode-btn" data-mode="abyss">Abyss</button>
+              </div>
+
+              <div class="widget-action-buttons">
+                <button class="widget-btn widget-btn-reset" id="timerReset" title="Reset Session">
+                  <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35Z"/></svg>
+                </button>
+                <button class="widget-btn widget-btn-play" id="timerPlay" title="Start Timer">
+                  <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  <svg id="pauseIcon" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+                <button class="widget-btn widget-btn-zen" id="timerZenToggle" title="Toggle Zen Mode">
+                  <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5ZM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5Zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3Z"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="widget-footer">
+              <input type="text" class="widget-task-input" id="widgetTask" value="Coding landing page..." placeholder="What are you focusing on?" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- The Technique / Pomodoro Explained -->
+      <section class="section" id="technique">
+        <div class="section-kicker">Productivity Foundations</div>
+        <h2 class="section-title">The technique. <span class="glow-accent">Simplified.</span></h2>
+        <p class="section-desc">Nimbus is built around the original core loop of the Pomodoro technique—eliminating unnecessary features to help you enter flow faster.</p>
+
+        <div class="steps-grid">
+          <div class="step-card">
+            <span class="step-number">01</span>
+            <h4>Scope One Goal</h4>
+            <p>Pick a single objective. Input the task description inside Nimbus to cement your commitment.</p>
+          </div>
+          <div class="step-card">
+            <span class="step-number">02</span>
+            <h4>Work Unbroken</h4>
+            <p>Press Play and execute for 25 minutes. If distraction strikes, let the expanding color dial pull you back.</p>
+          </div>
+          <div class="step-card">
+            <span class="step-number">03</span>
+            <h4>Step Away Completely</h4>
+            <p>When the alarm signals, disengage. Rest for 5 minutes. Walk, stretch, breathe. Do not check social media.</p>
+          </div>
+          <div class="step-card">
+            <span class="step-number">04</span>
+            <h4>Analyze the Trail</h4>
+            <p>Track metrics over 4 sessions. Export logs to CSV to review exact start-times and session completions.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Downloads Section -->
+      <section class="section" id="downloads">
+        <div class="section-kicker">Releases & Binaries</div>
+        <h2 class="section-title">Deploy desktop package</h2>
+        <p class="section-desc">Download compiled desktop installers hosted directly on the GitHub release page. Free, unsigned, and built from source.</p>
+
+        <div class="downloads-container">
+          <div class="downloads-header-inner">
+            <h3>Nimbus Version 1.2.13</h3>
+            <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-quiet);">CHECKSUMS VERIFIED ON ACTION BUILD</span>
+          </div>
+
+          <div class="downloads-grid-layout">
+            <div class="dl-platform-col">
+              <h4>macOS (Apple Silicon & Intel)</h4>
+              <a class="dl-btn" href="https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-1.2.13-mac-arm64.dmg">
+                <svg viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-.96.04-2.13.64-2.82 1.45-.6.69-1.12 1.83-.98 2.94.1.08.2.1.28.1.92 0 1.88-.58 2.53-1.43Z"/></svg>
+                <span>Apple Silicon DMG</span>
+                <span class="dl-meta">arm64</span>
+              </a>
+              <a class="dl-btn" href="https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-1.2.13-mac-x64.dmg">
+                <svg viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-.96.04-2.13.64-2.82 1.45-.6.69-1.12 1.83-.98 2.94.1.08.2.1.28.1.92 0 1.88-.58 2.53-1.43Z"/></svg>
+                <span>Intel Mac DMG</span>
+                <span class="dl-meta">x64</span>
+              </a>
+              <p class="dl-note">Requires ad-hoc signature confirmation on macOS Sequoia/Sonoma due to unsigned Gatekeeper builds.</p>
+            </div>
+
+            <div class="dl-platform-col">
+              <h4>Windows Desktop</h4>
+              <a class="dl-btn" href="https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-Setup-1.2.13-x64.exe">
+                <svg viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.45H0V3.449zM0 12.45h9.75v9.45L0 20.551v-8.101zm10.8 0H24v11.1l-13.2-1.8v-9.3zm0-10.35L24 .6v10.95H10.8V2.1z"/></svg>
+                <span>Windows Installer</span>
+                <span class="dl-meta">EXE</span>
+              </a>
+              <a class="dl-btn" href="https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-Portable-1.2.13-x64.exe">
+                <svg viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.45H0V3.449zM0 12.45h9.75v9.45L0 20.551v-8.101zm10.8 0H24v11.1l-13.2-1.8v-9.3zm0-10.35L24 .6v10.95H10.8V2.1z"/></svg>
+                <span>Portable Executable</span>
+                <span class="dl-meta">x64</span>
+              </a>
+              <p class="dl-note">Silent installations are supported by running the installer command with the `/S` flag in powershell.</p>
+            </div>
+
+            <div class="dl-platform-col">
+              <h4>Browser & Source</h4>
+              <a class="dl-btn" href="./pomodoro-cloud-v2.html">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm-1-13h2v6h-2Zm0 8h2v2h-2Z"/></svg>
+                <span>Launch Web Client</span>
+                <span class="dl-meta">HTML</span>
+              </a>
+              <a class="dl-btn" href="https://github.com/murderszn/nimbus">
+                <svg viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg>
+                <span>Inspect Repository</span>
+                <span class="dl-meta">GIT</span>
+              </a>
+              <p class="dl-note">Entirely open source. Read compilation targets, preload structures, and generate app icons locally.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ Section -->
+      <section class="section" id="faq">
+        <div class="section-kicker">Common Questions</div>
+        <h2 class="section-title" style="text-align: center;">Technical Details</h2>
+        <p class="section-desc" style="text-align: center; margin-left: auto; margin-right: auto;">Everything you need to check before trusting Nimbus with your deep focus sessions.</p>
+
+        <div class="faq-wrapper">
+          <div class="faq-item">
+            <button class="faq-trigger">
+              <span>Is my session history uploaded to a database?</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="faq-panel">
+              <p>No. Nimbus values user data privacy. All logs, timer states, and naming history are stored directly inside your local hard drive using browser `localStorage` or Electron application configs. Nothing is sent to external servers.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-trigger">
+              <span>Does the web app support picture-in-picture mode?</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="faq-panel">
+              <p>Yes. If your browser supports video picture-in-picture, Nimbus uses a canvas-to-video capture trick to mirror the active clock directly into a floating overlay window when you switch tabs.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-trigger">
+              <span>Why am I getting a SmartScreen/Gatekeeper warning on desktop?</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="faq-panel">
+              <p>The binaries compiled on GitHub Actions are unsigned. Signing DMG/EXE builds requires paid Apple Developer and Microsoft Certificate subscriptions. You can bypass the warnings safely by secondary-clicking (Mac) or selecting "Run anyway" (Windows SmartScreen).</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-trigger">
+              <span>How do I export my productivity reports?</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="faq-panel">
+              <p>You can click the History icon in the application to open the session panel, where a dedicated "Export to CSV" button generates a timestamped spreadsheet containing all completed, paused, or canceled timer segments.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <!-- Column 1: Brand & Status -->
+        <div class="footer-col">
+          <a class="footer-logo" href="#">
+            <img src="./assets/icon.png" alt="Nimbus Logo" />
+            <span>Nimbus</span>
+          </a>
+          <p class="footer-tagline">“Time is storms. Focus in the Nimbus.”</p>
+          <p class="footer-desc">
+            A cinematic, storm-themed Pomodoro workspace designed for developers and creators. Open source, privacy-first, and distraction-free.
+          </p>
+
+        </div>
+
+        <!-- Column 2: Ecosystem & Downloads -->
+        <div class="footer-col">
+          <div class="footer-col-title">Downloads</div>
+          <ul>
+            <li>
+              <a href="https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-1.2.13-mac-arm64.dmg" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                macOS Apple Silicon (arm64)
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-1.2.13-mac-x64.dmg" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                macOS Intel (x64)
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-Setup-1.2.13-x64.exe" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                Windows Setup (EXE)
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-Portable-1.2.13-x64.exe" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                Windows Portable (x64)
+              </a>
+            </li>
+            <li>
+              <a href="./pomodoro-cloud-v2.html">
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                In-Browser Web Client
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Column 3: Repository & Meta -->
+        <div class="footer-col">
+          <div class="footer-col-title">Project</div>
+          <ul>
+            <li>
+              <a href="https://github.com/murderszn/nimbus" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                GitHub Repository
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/murderszn/nimbus/issues" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                Issue Tracker
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/murderszn/nimbus/releases" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                Release Changelog
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/murderszn/nimbus/blob/main/LICENSE" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                MIT License
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Bottom Metadata Row -->
+        <div class="footer-bottom">
+          <div class="footer-bottom-left">
+            <span>© 2026 Nimbus Project. Open source under the MIT License.</span>
+          </div>
+          <div class="footer-icons">
+            <a href="https://github.com/murderszn/nimbus" target="_blank" rel="noopener" title="GitHub">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222 0 1.606-.014 2.898-.014 3.293 0 .322.216.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+            </a>
+            <a href="https://discord.gg/F9Vy9ByYbB" target="_blank" rel="noopener" title="Discord">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // ── WebGL Wave Shader Background (from /motion) ──
+    (function() {
+      const canvas = document.getElementById('bg-canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) return;
+
+      const VS = 'attribute vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }';
+      const FS = `
+precision highp float;
+uniform float u_time;
+uniform vec2  u_res;
+uniform vec2  u_mouse;
+
+float hash21(vec2 p){ p = fract(p * vec2(234.34, 435.345)); p += dot(p, p + 34.23); return fract(p.x * p.y); }
+float vnoise(vec2 p){ vec2 i = floor(p); vec2 f = fract(p); f = f*f*(3.0-2.0*f);
+  float a=hash21(i), b=hash21(i+vec2(1.0,0.0)), c=hash21(i+vec2(0.0,1.0)), d=hash21(i+vec2(1.0,1.0));
+  return mix(mix(a,b,f.x), mix(c,d,f.x), f.y); }
+float fbm(vec2 p){ float v=0.0; float a=0.5; mat2 r=mat2(0.80,0.60,-0.60,0.80);
+  for(int i=0;i<5;i++){ v+=a*vnoise(p); p=r*p*2.1+vec2(1.7,9.2); a*=0.5; } return v; }
+
+vec3 pal(float t){ t=clamp(t,0.0,1.0);
+  if(t<0.30) return mix(vec3(0.000,0.000,0.000), vec3(0.008,0.031,0.122), t/0.30);
+  if(t<0.62) return mix(vec3(0.008,0.031,0.122), vec3(0.043,0.290,0.698), (t-0.30)/0.32);
+             return mix(vec3(0.043,0.290,0.698), vec3(0.000,0.824,1.000), (t-0.62)/0.38); }
+
+void main(){
+  vec2 uv = gl_FragCoord.xy / u_res; uv.y = 1.0 - uv.y;
+  float ar = u_res.x / u_res.y;
+  
+  // Subtle interactive parallax displacement based on mouse coordinates
+  vec2 mouseWarp = (u_mouse - 0.5) * 0.12 * (1.0 - uv.y);
+  vec2 p = vec2(uv.x * ar, uv.y) + mouseWarp;
+  
+  float t  = u_time * 0.22;
+  vec2 q = vec2(fbm(p*1.5 + vec2(t*0.30, t*0.05)), fbm(p*1.5 + vec2(5.2,1.3) - vec2(t*0.18, 0.0)));
+  float f = fbm(p*1.4 + q*2.6 + vec2(t*0.22, 0.0));
+  float swell = uv.y*1.4 + sin(uv.x*ar*1.4 + t*1.1 + q.x*3.0)*0.30 + sin(uv.x*ar*3.1 - t*1.6 + q.y*2.0)*0.14 + f*1.5;
+  float band = 0.5 + 0.5*sin(swell*6.2831*0.85 - t*0.6);
+  vec3 col = pal(band*0.96);
+  float crest = pow(band,6.0)*0.55;
+  col += vec3(0.500,0.900,1.000)*crest;
+  col *= 0.82 + 0.30*smoothstep(0.0,0.7,uv.y);
+  col += (hash21(gl_FragCoord.xy) - 0.5)*0.02;
+  vec2 vig = uv*2.0 - 1.0; col *= 1.0 - dot(vig,vig)*0.22;
+  gl_FragColor = vec4(col, 1.0);
+}
+`;
+
+      function compileShader(type, src) {
+        const s = gl.createShader(type);
+        gl.shaderSource(s, src);
+        gl.compileShader(s);
+        return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
+      }
+
+      const vs = compileShader(gl.VERTEX_SHADER, VS);
+      const fs = compileShader(gl.FRAGMENT_SHADER, FS);
+      if (!vs || !fs) return;
+
+      const prog = gl.createProgram();
+      gl.attachShader(prog, vs);
+      gl.attachShader(prog, fs);
+      gl.linkProgram(prog);
+      gl.useProgram(prog);
+
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+      const aLoc = gl.getAttribLocation(prog, 'a');
+      gl.enableVertexAttribArray(aLoc);
+      gl.vertexAttribPointer(aLoc, 2, gl.FLOAT, false, 0, 0);
+
+      const uTime = gl.getUniformLocation(prog, 'u_time');
+      const uRes = gl.getUniformLocation(prog, 'u_res');
+      const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+
+      function resize() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        canvas.width = Math.round(window.innerWidth * dpr);
+        canvas.height = Math.round(window.innerHeight * dpr);
+        gl.viewport(0, 0, canvas.width, canvas.height);
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      // Track normalized cursor positions
+      let mouseX = 0.5, mouseY = 0.5;
+      let targetMouseX = 0.5, targetMouseY = 0.5;
+      window.addEventListener('mousemove', e => {
+        targetMouseX = e.clientX / window.innerWidth;
+        targetMouseY = e.clientY / window.innerHeight;
+      });
+
+      const t0 = performance.now();
+      function render(now) {
+        // Smooth mouse interpolation
+        mouseX += (targetMouseX - mouseX) * 0.05;
+        mouseY += (targetMouseY - mouseY) * 0.05;
+
+        gl.uniform1f(uTime, (now - t0) / 1000);
+        gl.uniform2f(uRes, canvas.width, canvas.height);
+        gl.uniform2f(uMouse, mouseX, mouseY);
+        
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        requestAnimationFrame(render);
+      }
+      requestAnimationFrame(render);
+    })();
+
+    // ── Widget Zen Mode Shader ──
+    (function() {
+      const canvas = document.getElementById('widgetShaderCanvas');
+      if (!canvas) return;
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) return;
+
+      const VS = 'attribute vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }';
+      const FS = `
+precision highp float;
+uniform float u_time;
+uniform vec2 u_res;
+uniform float u_theme;
+
+float hash21(vec2 p){ p = fract(p * vec2(234.34, 435.345)); p += dot(p, p + 34.23); return fract(p.x * p.y); }
+float vnoise(vec2 p){ vec2 i = floor(p); vec2 f = fract(p); f = f*f*(3.0-2.0*f);
+  float a=hash21(i), b=hash21(i+vec2(1.0,0.0)), c=hash21(i+vec2(0.0,1.0)), d=hash21(i+vec2(1.0,1.0));
+  return mix(mix(a,b,f.x), mix(c,d,f.x), f.y); }
+float fbm(vec2 p){ float v=0.0; float a=0.5; mat2 r=mat2(0.80,0.60,-0.60,0.80);
+  for(int i=0;i<5;i++){ v+=a*vnoise(p); p=r*p*2.1+vec2(1.7,9.2); a*=0.5; } return v; }
+
+vec3 getThemeColor(float t){
+  if(u_theme < 0.5) return mix(vec3(0.0, 0.0, 0.0), vec3(0.024, 0.714, 0.831), t);
+  if(u_theme < 1.5) return mix(vec3(0.0, 0.0, 0.0), vec3(0.063, 0.725, 0.506), t);
+  if(u_theme < 2.5) return mix(vec3(0.0, 0.0, 0.0), vec3(0.961, 0.620, 0.043), t);
+  return mix(vec3(0.0, 0.0, 0.0), vec3(0.545, 0.361, 0.965), t);
+}
+
+void main(){
+  vec2 uv = gl_FragCoord.xy / u_res;
+  uv.y = 1.0 - uv.y;
+  float ar = u_res.x / u_res.y;
+  float t = u_time * 0.15;
+  
+  vec2 p = vec2(uv.x * ar, uv.y) * 2.0;
+  vec2 q = vec2(fbm(p + vec2(t*0.3, t*0.1)), fbm(p + vec2(5.2, 1.3) - vec2(t*0.2, 0.0)));
+  float f = fbm(p + q * 2.0 + vec2(t*0.15, 0.0));
+  
+  float swell = uv.y * 1.8 + sin(uv.x*ar*1.2 + t*0.8 + q.x*2.5)*0.4 + f*1.2;
+  float band = 0.5 + 0.5*sin(swell*6.2831*0.7 - t*0.4);
+  
+  vec3 col = getThemeColor(band * 0.8);
+  col += getThemeColor(1.0) * pow(band, 8.0) * 0.4;
+  col *= 0.7 + 0.3*smoothstep(0.0, 0.8, uv.y);
+  
+  float vignette = 1.0 - dot((uv*2.0-1.0), (uv*2.0-1.0)) * 0.3;
+  col *= vignette;
+  
+  col += (hash21(gl_FragCoord.xy) - 0.5) * 0.015;
+  
+  gl_FragColor = vec4(col, 1.0);
+}`;
+
+      function compileShader(type, src) {
+        const s = gl.createShader(type);
+        gl.shaderSource(s, src);
+        gl.compileShader(s);
+        return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
+      }
+
+      const vs = compileShader(gl.VERTEX_SHADER, VS);
+      const fs = compileShader(gl.FRAGMENT_SHADER, FS);
+      if (!vs || !fs) return;
+
+      const prog = gl.createProgram();
+      gl.attachShader(prog, vs);
+      gl.attachShader(prog, fs);
+      gl.linkProgram(prog);
+      gl.useProgram(prog);
+
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+      const aLoc = gl.getAttribLocation(prog, 'a');
+      gl.enableVertexAttribArray(aLoc);
+      gl.vertexAttribPointer(aLoc, 2, gl.FLOAT, false, 0, 0);
+
+      const uTime = gl.getUniformLocation(prog, 'u_time');
+      const uRes = gl.getUniformLocation(prog, 'u_res');
+      const uTheme = gl.getUniformLocation(prog, 'u_theme');
+
+      let currentTheme = 0;
+      let shaderRunning = false;
+
+      function resize() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        canvas.width = Math.round(rect.width * dpr);
+        canvas.height = Math.round(rect.height * dpr);
+        gl.viewport(0, 0, canvas.width, canvas.height);
+      }
+
+      const t0 = performance.now();
+      function render(now) {
+        if (!shaderRunning) return;
+        gl.uniform1f(uTime, (now - t0) / 1000);
+        gl.uniform2f(uRes, canvas.width, canvas.height);
+        gl.uniform1f(uTheme, currentTheme);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        requestAnimationFrame(render);
+      }
+
+      window.startWidgetShader = function(theme) {
+        currentTheme = theme;
+        if (!shaderRunning) {
+          shaderRunning = true;
+          resize();
+          requestAnimationFrame(render);
+        }
+      };
+
+      window.stopWidgetShader = function() {
+        shaderRunning = false;
+      };
+
+      window.addEventListener('resize', () => { if (shaderRunning) resize(); });
+    })();
+
+    // ── Mouse-Tracking Hover Card Halo Glow ──
+    const cards = document.querySelectorAll('.glow-card');
+    cards.forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
+      });
+    });
+
+    // ── Terminal Installer Tab Switching ──
+    const terminalTabs = document.querySelectorAll('.terminal-tab');
+    const installCommand = document.getElementById('installCommand');
+    const copyBtn = document.getElementById('copyBtn');
+
+    const COMMANDS = {
+      mac: 'curl -fsSL https://raw.githubusercontent.com/murderszn/nimbus/main/install.sh | bash',
+      win: 'iwr https://raw.githubusercontent.com/murderszn/nimbus/main/install.ps1 | iex',
+      manual: 'curl -L -o Nimbus.dmg https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-1.2.13-mac-arm64.dmg'
+    };
+
+    terminalTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        terminalTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const os = tab.getAttribute('data-os');
+        installCommand.textContent = COMMANDS[os];
+        
+        // Reset copy button status
+        copyBtn.classList.remove('copied');
+        copyBtn.querySelector('span').textContent = 'Copy';
+      });
+    });
+
+    // Copy command to clipboard
+    copyBtn.addEventListener('click', () => {
+      const textToCopy = installCommand.textContent;
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        copyBtn.classList.add('copied');
+        copyBtn.querySelector('span').textContent = 'Copied!';
+        setTimeout(() => {
+          copyBtn.classList.remove('copied');
+          copyBtn.querySelector('span').textContent = 'Copy';
+        }, 2000);
+      });
+    });
+
+    // ── Interactive Pomodoro Mini-Timer Sandbox App Widget ──
+    const timerWidget = document.getElementById('timerWidget');
+    const timerProgress = document.getElementById('timerProgress');
+    const timerClock = document.getElementById('timerClock');
+    const widgetModeLabel = document.getElementById('widgetModeLabel');
+    const timerPlay = document.getElementById('timerPlay');
+    const timerReset = document.getElementById('timerReset');
+    const timerZenToggle = document.getElementById('timerZenToggle');
+    const playIcon = document.getElementById('playIcon');
+    const pauseIcon = document.getElementById('pauseIcon');
+    const modeBtns = document.querySelectorAll('.widget-mode-btn');
+
+    let timerDuration = 25 * 60; // 25 minutes
+    let defaultDuration = 25 * 60;
+    let timerRemaining = timerDuration;
+    let timerInterval = null;
+    let timerRunning = false;
+    const progressCircumference = 2 * Math.PI * 90; // ~565.48
+
+    // Track mouse on widget to adjust highlight glow coordinates
+    timerWidget.addEventListener('mousemove', e => {
+      const rect = timerWidget.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      timerWidget.style.setProperty('--w-glow-x', `${x}%`);
+      timerWidget.style.setProperty('--w-glow-y', `${y}%`);
+    });
+
+    function updateProgressRing() {
+      const progressFraction = timerRemaining / timerDuration;
+      const offset = progressCircumference * (1 - progressFraction);
+      timerProgress.style.strokeDashoffset = offset;
+
+      const minutes = Math.floor(timerRemaining / 60);
+      const seconds = timerRemaining % 60;
+      timerClock.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    // Initialize progress ring offset
+    timerProgress.style.strokeDashoffset = 0;
+    updateProgressRing();
+
+    function startTimer() {
+      if (timerRunning) return;
+      timerRunning = true;
+      playIcon.style.display = 'none';
+      pauseIcon.style.display = 'block';
+
+      timerInterval = setInterval(() => {
+        if (timerRemaining > 0) {
+          timerRemaining--;
+          updateProgressRing();
+        } else {
+          stopTimer();
+          alert('Session completed! Time to take a breather.');
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (!timerRunning) return;
+      timerRunning = false;
+      playIcon.style.display = 'block';
+      pauseIcon.style.display = 'none';
+      clearInterval(timerInterval);
+    }
+
+    timerPlay.addEventListener('click', () => {
+      if (timerRunning) {
+        stopTimer();
+      } else {
+        startTimer();
+      }
+    });
+
+    timerReset.addEventListener('click', () => {
+      stopTimer();
+      timerRemaining = timerDuration;
+      updateProgressRing();
+    });
+
+    // Zen Mode Toggle
+    let isZen = false;
+    let currentThemeIndex = 0;
+    const themeMap = { 'theme-focus': 0, 'theme-short-break': 1, 'theme-long-break': 2, 'theme-abyss': 3 };
+
+    timerZenToggle.addEventListener('click', () => {
+      isZen = !isZen;
+      if (isZen) {
+        timerWidget.classList.add('zen-mode');
+        const themeClass = timerWidget.className.split(' ').find(c => c.startsWith('theme-'));
+        currentThemeIndex = themeMap[themeClass] || 0;
+        if (window.startWidgetShader) window.startWidgetShader(currentThemeIndex);
+        if (!timerRunning) {
+          startTimer();
+        }
+      } else {
+        timerWidget.classList.remove('zen-mode');
+        if (window.stopWidgetShader) window.stopWidgetShader();
+      }
+    });
+
+    // Double click on widget in zen mode exits Zen Mode
+    timerWidget.addEventListener('dblclick', () => {
+      if (isZen) {
+        isZen = false;
+        timerWidget.classList.remove('zen-mode');
+        if (window.stopWidgetShader) window.stopWidgetShader();
+      }
+    });
+
+    // Mode Buttons switching (Focus, Short Break, Long Break, Abyss)
+    const modeConfigs = {
+      focus: { duration: 25 * 60, label: 'Focusing', themeClass: 'theme-focus' },
+      short: { duration: 5 * 60, label: 'Short Break', themeClass: 'theme-short-break' },
+      long: { duration: 15 * 60, label: 'Long Break', themeClass: 'theme-long-break' },
+      abyss: { duration: 60 * 60, label: 'Abyss Mode', themeClass: 'theme-abyss' }
+    };
+
+    modeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        modeBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const mode = btn.getAttribute('data-mode');
+        const config = modeConfigs[mode];
+        
+        // Stop active intervals
+        stopTimer();
+        
+        // Remove old theme classes
+        timerWidget.className = 'mock-app-widget';
+        timerWidget.classList.add(config.themeClass);
+        if (isZen) {
+          timerWidget.classList.add('zen-mode');
+          const themeClass = config.themeClass;
+          currentThemeIndex = themeMap[themeClass] || 0;
+          if (window.startWidgetShader) window.startWidgetShader(currentThemeIndex);
+        }
+
+        // Set duration
+        timerDuration = config.duration;
+        timerRemaining = timerDuration;
+        widgetModeLabel.textContent = config.label;
+        updateProgressRing();
+      });
+    });
+
+    // ── FAQ Accordion Sliding Functionality ──
+    const faqItems = document.querySelectorAll('.faq-item');
+    faqItems.forEach(item => {
+      const trigger = item.querySelector('.faq-trigger');
+      const panel = item.querySelector('.faq-panel');
+      
+      trigger.addEventListener('click', () => {
+        const isActive = item.classList.contains('active');
+        
+        // Close all items
+        faqItems.forEach(i => {
+          i.classList.remove('active');
+          i.querySelector('.faq-panel').style.display = 'none';
+        });
+
+        if (!isActive) {
+          item.classList.add('active');
+          panel.style.display = 'block';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

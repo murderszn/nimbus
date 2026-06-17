@@ -284,13 +284,15 @@
       align-items: baseline;
       justify-content: center;
       font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(92px, 17vw, 236px); font-weight: 300;
+      font-size: clamp(92px, 17vw, 236px); font-weight: 400;
       letter-spacing: .025em; line-height: 1.02; color: var(--tx);
       font-variant-numeric: tabular-nums;
       max-width: 94vw;
       margin-bottom: 8px;
       transition: color var(--trans);
-      text-shadow: 0 0 70px rgba(var(--cloud-e-rgb),.24), 0 0 160px rgba(var(--cloud-d-rgb),.12);
+      text-shadow: 0 4px 16px rgba(0, 0, 0, 0.85),
+                   0 0 40px rgba(var(--bg-a-rgb), 0.95),
+                   0 0 80px rgba(var(--cloud-e-rgb), 0.3);
     }
     .time-segment {
       display: inline-flex;
@@ -309,32 +311,36 @@
       margin-left: .035em;
       font-family: 'DM Sans', sans-serif;
       font-size: .2em;
-      font-weight: 300;
+      font-weight: 400;
       letter-spacing: .16em;
       line-height: 1;
       text-transform: uppercase;
       color: var(--muted);
       transform: translateY(-.12em);
       transition: color var(--trans);
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
     }
 
     .mode-label {
-      font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 200;
+      font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500;
       letter-spacing: .28em; line-height: 1.4; text-transform: uppercase;
       color: var(--muted); transition: color var(--trans);
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
     }
 
     .session-name-display {
-      font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 300;
+      font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 400;
       letter-spacing: .1em; color: var(--muted); transition: color var(--trans), opacity .4s;
       opacity: 0; max-width: 260px; text-align: center; font-style: italic;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
     }
     .session-name-display.visible { opacity: .8; }
 
     .session-done-msg {
-      font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 300;
+      font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 400;
       letter-spacing: .12em; color: var(--muted);
       transition: color var(--trans), opacity .6s; opacity: 0; margin-top: 4px;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
     }
     .session-done-msg.visible { opacity: 1; }
 
@@ -356,24 +362,27 @@
     .pill {
       min-width: 0; height: 34px;
       display: flex; align-items: center; justify-content: center;
-      background: rgba(var(--bg-a-rgb),.18); border: 1px solid transparent; border-radius: 8px;
-      color: rgba(255,255,255,.82); font-family: 'DM Sans', sans-serif; font-size: 10px;
-      font-weight: 300; letter-spacing: .13em; text-transform: uppercase;
+      background: rgba(var(--bg-a-rgb), .42); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px;
+      color: rgba(255, 255, 255, .9); font-family: 'DM Sans', sans-serif; font-size: 10px;
+      font-weight: 500; letter-spacing: .13em; text-transform: uppercase;
       padding: 0 12px; cursor: pointer; outline: none;
       text-align: center; white-space: nowrap;
-      backdrop-filter: none;
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+      backdrop-filter: blur(16px) saturate(140%);
       transition: background .25s ease, border-color .25s ease, color var(--trans), box-shadow .25s ease;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     }
-    .pill:hover { border-color: transparent; color: #fff; background: rgba(var(--cloud-e-rgb),.1); }
+    .pill:hover { border-color: transparent; color: #fff; background: rgba(var(--cloud-e-rgb),.2); }
     .pill:focus-visible {
       border-color: rgba(255,255,255,.68);
       box-shadow: 0 0 0 3px rgba(255,255,255,.12);
     }
     .pill.active {
-      border-color: transparent;
-      background: linear-gradient(180deg, rgba(var(--cloud-e-rgb),.18), rgba(var(--cloud-d-rgb),.1));
+      border-color: rgba(var(--cloud-e-rgb),.35);
+      background: linear-gradient(180deg, rgba(var(--cloud-e-rgb),.32), rgba(var(--cloud-d-rgb),.22));
       color: #fff;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 10px 26px rgba(0,0,0,.22), 0 0 24px rgba(var(--cloud-d-rgb),.16);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.24), 0 10px 26px rgba(0,0,0,.22), 0 0 24px rgba(var(--cloud-d-rgb),.24);
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
     }
 
     .btn-row {
@@ -398,12 +407,14 @@
     .download-toggle {
       min-width: 112px; height: 32px;
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      background: rgba(var(--bg-a-rgb),.2); border: 1px solid rgba(var(--cloud-e-rgb),.34); border-radius: 8px;
-      color: rgba(255,255,255,.82); font-family: 'DM Sans', sans-serif; font-size: 10px;
-      font-weight: 300; letter-spacing: .16em; text-transform: uppercase;
+      background: rgba(var(--bg-a-rgb), .42); border: 1px solid rgba(var(--cloud-e-rgb), .34); border-radius: 8px;
+      color: rgba(255, 255, 255, .9); font-family: 'DM Sans', sans-serif; font-size: 10px;
+      font-weight: 500; letter-spacing: .16em; text-transform: uppercase;
       padding: 0 14px; cursor: pointer; outline: none;
-      backdrop-filter: none;
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+      backdrop-filter: blur(16px) saturate(140%);
       transition: background .25s ease, border-color .25s ease, color var(--trans), box-shadow .25s ease, transform .2s ease;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     }
     .theme-toggle:hover,
     .theme-picker.open .theme-toggle,
@@ -572,18 +583,20 @@
       border-radius: 8px; font-family: 'DM Sans', sans-serif;
       text-transform: uppercase; cursor: pointer; outline: none;
       text-align: center; white-space: nowrap;
-      backdrop-filter: none;
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+      backdrop-filter: blur(16px) saturate(140%);
       transition: transform .2s ease, background .25s ease, border-color .25s ease, color var(--trans), box-shadow .25s ease;
     }
 
     .main-btn {
-      background: linear-gradient(135deg, rgba(var(--cloud-e-rgb),.28), rgba(var(--cloud-d-rgb),.18));
+      background: linear-gradient(135deg, rgba(var(--cloud-e-rgb),.42), rgba(var(--cloud-d-rgb),.28));
       border: 1px solid rgba(var(--cloud-e-rgb),.58);
-      color: #fff; font-size: 12px; font-weight: 400; letter-spacing: .2em;
+      color: #fff; font-size: 12px; font-weight: 600; letter-spacing: .2em;
       padding: 0 24px;
       box-shadow: 0 14px 34px rgba(0,0,0,.26), 0 0 28px rgba(var(--cloud-d-rgb),.18), inset 0 1px 0 rgba(255,255,255,.2);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.4);
     }
-    .main-btn:hover { transform: translateY(-1px); background: linear-gradient(135deg, rgba(var(--cloud-e-rgb),.36), rgba(var(--cloud-d-rgb),.24)); border-color: rgba(var(--cloud-e-rgb),.78); }
+    .main-btn:hover { transform: translateY(-1px); background: linear-gradient(135deg, rgba(var(--cloud-e-rgb),.52), rgba(var(--cloud-d-rgb),.34)); border-color: rgba(var(--cloud-e-rgb),.78); }
     .main-btn:focus-visible {
       border-color: rgba(255,255,255,.72);
       box-shadow: 0 12px 30px rgba(0,0,0,.22), 0 0 0 3px rgba(255,255,255,.14), inset 0 1px 0 rgba(255,255,255,.14);
@@ -591,13 +604,14 @@
     .main-btn:active { transform: scale(.97); }
 
     .ghost-btn {
-      background: rgba(var(--bg-a-rgb),.2); border: 1px solid rgba(var(--cloud-e-rgb),.34);
-      color: rgba(255,255,255,.82); font-size: 11px; font-weight: 300; letter-spacing: .16em;
+      background: rgba(var(--bg-a-rgb), .42); border: 1px solid rgba(var(--cloud-e-rgb),.34);
+      color: rgba(255,255,255,.9); font-size: 11px; font-weight: 500; letter-spacing: .16em;
       padding: 0 16px;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     }
     .ghost-btn:hover {
       transform: translateY(-1px);
-      background: rgba(var(--cloud-e-rgb),.1);
+      background: rgba(var(--cloud-e-rgb),.2);
       border-color: rgba(var(--cloud-e-rgb),.58);
       color: #fff;
     }
@@ -796,16 +810,17 @@
     .sidebar {
       position: fixed; top: var(--chrome-h); right: 0; width: var(--sidebar-w); height: calc(100% - var(--chrome-h));
       background:
-        linear-gradient(180deg, rgba(var(--bg-a-rgb), .94), rgba(var(--bg-b-rgb), .82)),
-        radial-gradient(circle at 18% 8%, rgba(var(--cloud-e-rgb), .2), transparent 46%);
-      backdrop-filter: none;
-      border-left: none;
+        linear-gradient(180deg, rgba(var(--bg-a-rgb), .62), rgba(var(--bg-b-rgb), .48)),
+        radial-gradient(circle at 18% 8%, rgba(var(--cloud-e-rgb), .16), transparent 46%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      backdrop-filter: blur(28px) saturate(180%);
+      border-left: 1px solid rgba(255, 255, 255, 0.08);
       transform: translateX(100%);
       transition: transform .34s cubic-bezier(.2,.8,.2,1), background .75s ease, border-color .75s ease;
       z-index: 200;
       display: flex; flex-direction: column;
       overflow: hidden;
-      box-shadow: -16px 0 48px rgba(0,0,0,.28);
+      box-shadow: -12px 0 40px rgba(0,0,0,.35);
       will-change: transform;
     }
     body.sidebar-open .sidebar { transform: translateX(0); }
@@ -989,15 +1004,17 @@
     .settings-panel {
       position: fixed; top: var(--chrome-h); right: 0; width: var(--sidebar-w); height: calc(100% - var(--chrome-h));
       background:
-        linear-gradient(180deg, rgba(var(--bg-a-rgb), .95), rgba(var(--bg-b-rgb), .84)),
-        radial-gradient(circle at 22% 6%, rgba(var(--cloud-e-rgb), .22), transparent 48%);
-      border-left: 1px solid var(--panel-line);
+        linear-gradient(180deg, rgba(var(--bg-a-rgb), .62), rgba(var(--bg-b-rgb), .48)),
+        radial-gradient(circle at 22% 6%, rgba(var(--cloud-e-rgb), .18), transparent 48%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      backdrop-filter: blur(28px) saturate(180%);
+      border-left: 1px solid rgba(255, 255, 255, 0.08);
       transform: translateX(100%);
       transition: transform .34s cubic-bezier(.2,.8,.2,1), background .75s ease, border-color .75s ease;
       z-index: 205;
       display: flex; flex-direction: column;
       overflow: hidden;
-      box-shadow: -16px 0 48px rgba(0,0,0,.3);
+      box-shadow: -12px 0 40px rgba(0,0,0,.35);
       will-change: transform;
     }
     body.settings-open .settings-panel { transform: translateX(0); }
@@ -1972,9 +1989,131 @@
 
 <script>
 const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
+const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+let shaderProgram = null;
+let uTimeLoc, uResLoc, uMouseLoc;
+let uColorALoc, uColorBLoc, uColorCLoc, uColorDLoc, uColorELoc;
+
+// Mouse tracking coordinates
+let mouseX = 0.5, mouseY = 0.5;
+let targetMouseX = 0.5, targetMouseY = 0.5;
+window.addEventListener('mousemove', e => {
+  targetMouseX = e.clientX / window.innerWidth;
+  targetMouseY = e.clientY / window.innerHeight;
+});
+
+const ctx = gl ? null : canvas.getContext('2d');
 const desktopBridge = window.nimbusDesktop || {};
 const IS_DESKTOP = !!desktopBridge.isDesktop;
+
+// ── WebGL Wave Shader Background ──
+const VS = 'attribute vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }';
+const FS = `
+precision highp float;
+uniform float u_time;
+uniform vec2  u_res;
+uniform vec2  u_mouse;
+
+uniform vec3  u_color_a;
+uniform vec3  u_color_b;
+uniform vec3  u_color_c;
+uniform vec3  u_color_d;
+uniform vec3  u_color_e;
+
+float hash21(vec2 p){ p = fract(p * vec2(234.34, 435.345)); p += dot(p, p + 34.23); return fract(p.x * p.y); }
+float vnoise(vec2 p){ vec2 i = floor(p); vec2 f = fract(p); f = f*f*(3.0-2.0*f);
+  float a=hash21(i), b=hash21(i+vec2(1.0,0.0)), c=hash21(i+vec2(0.0,1.0)), d=hash21(i+vec2(1.0,1.0));
+  return mix(mix(a,b,f.x), mix(c,d,f.x), f.y); }
+float fbm(vec2 p){ float v=0.0; float a=0.5; mat2 r=mat2(0.80,0.60,-0.60,0.80);
+  for(int i=0;i<5;i++){ v+=a*vnoise(p); p=r*p*2.1+vec2(1.7,9.2); a*=0.5; } return v; }
+
+vec3 pal(float t){ t=clamp(t,0.0,1.0);
+  if(t<0.30) return mix(u_color_a, u_color_b, t/0.30);
+  if(t<0.62) return mix(u_color_b, u_color_c, (t-0.30)/0.32);
+             return mix(u_color_c, u_color_d, (t-0.62)/0.38); }
+
+void main(){
+  vec2 uv = gl_FragCoord.xy / u_res; uv.y = 1.0 - uv.y;
+  float ar = u_res.x / u_res.y;
+  
+  // Subtle interactive parallax displacement based on mouse coordinates
+  vec2 mouseWarp = (u_mouse - 0.5) * 0.12 * (1.0 - uv.y);
+  vec2 p = vec2(uv.x * ar, uv.y) + mouseWarp;
+  
+  float t  = u_time * 0.22;
+  vec2 q = vec2(fbm(p*1.5 + vec2(t*0.30, t*0.05)), fbm(p*1.5 + vec2(5.2,1.3) - vec2(t*0.18, 0.0)));
+  float f = fbm(p*1.4 + q*2.6 + vec2(t*0.22, 0.0));
+  float swell = uv.y*1.4 + sin(uv.x*ar*1.4 + t*1.1 + q.x*3.0)*0.30 + sin(uv.x*ar*3.1 - t*1.6 + q.y*2.0)*0.14 + f*1.5;
+  float band = 0.5 + 0.5*sin(swell*6.2831*0.85 - t*0.6);
+  vec3 col = pal(band*0.96);
+  float crest = pow(band,6.0)*0.55;
+  col += u_color_e * crest;
+  col *= 0.82 + 0.30*smoothstep(0.0,0.7,uv.y);
+  col += (hash21(gl_FragCoord.xy) - 0.5)*0.02;
+  vec2 vig = uv*2.0 - 1.0; col *= 1.0 - dot(vig,vig)*0.22;
+  gl_FragColor = vec4(col, 1.0);
+}
+`;
+
+function compileShader(type, src) {
+  if (!gl) return null;
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src);
+  gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+    console.error('Shader compiler error:', gl.getShaderInfoLog(s));
+    return null;
+  }
+  return s;
+}
+
+function initWebGL() {
+  if (!gl) return;
+  const vs = compileShader(gl.VERTEX_SHADER, VS);
+  const fs = compileShader(gl.FRAGMENT_SHADER, FS);
+  if (!vs || !fs) return;
+
+  shaderProgram = gl.createProgram();
+  gl.attachShader(shaderProgram, vs);
+  gl.attachShader(shaderProgram, fs);
+  gl.linkProgram(shaderProgram);
+
+  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+    console.error('Program link error:', gl.getProgramInfoLog(shaderProgram));
+    return;
+  }
+
+  gl.useProgram(shaderProgram);
+
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const aLoc = gl.getAttribLocation(shaderProgram, 'a');
+  gl.enableVertexAttribArray(aLoc);
+  gl.vertexAttribPointer(aLoc, 2, gl.FLOAT, false, 0, 0);
+
+  uTimeLoc = gl.getUniformLocation(shaderProgram, 'u_time');
+  uResLoc = gl.getUniformLocation(shaderProgram, 'u_res');
+  uMouseLoc = gl.getUniformLocation(shaderProgram, 'u_mouse');
+
+  uColorALoc = gl.getUniformLocation(shaderProgram, 'u_color_a');
+  uColorBLoc = gl.getUniformLocation(shaderProgram, 'u_color_b');
+  uColorCLoc = gl.getUniformLocation(shaderProgram, 'u_color_c');
+  uColorDLoc = gl.getUniformLocation(shaderProgram, 'u_color_d');
+  uColorELoc = gl.getUniformLocation(shaderProgram, 'u_color_e');
+}
+
+function updateShaderColors() {
+  if (!gl || !shaderProgram || !palRgb.a) return;
+  gl.useProgram(shaderProgram);
+  gl.uniform3f(uColorALoc, palRgb.a[0]/255.0, palRgb.a[1]/255.0, palRgb.a[2]/255.0);
+  gl.uniform3f(uColorBLoc, palRgb.b[0]/255.0, palRgb.b[1]/255.0, palRgb.b[2]/255.0);
+  gl.uniform3f(uColorCLoc, palRgb.c[0]/255.0, palRgb.c[1]/255.0, palRgb.c[2]/255.0);
+  gl.uniform3f(uColorDLoc, palRgb.d[0]/255.0, palRgb.d[1]/255.0, palRgb.d[2]/255.0);
+  gl.uniform3f(uColorELoc, palRgb.e[0]/255.0, palRgb.e[1]/255.0, palRgb.e[2]/255.0);
+}
+
+initWebGL();
 
 const themes = {
   blue:    { a:'#010611', b:'#071e3b', c:'#0d5f9f', d:'#20b8f2', e:'#a9eaff', text:'#f6fbff', muted:'rgba(214,235,252,0.78)', border:'rgba(104,202,255,0.36)' },
@@ -2265,6 +2404,7 @@ function setPalette(p) {
   root.style.setProperty('--tx', p.text);
   root.style.setProperty('--muted', p.muted);
   root.style.setProperty('--border', p.border);
+  updateShaderColors();
 }
 
 function canUseTheme(name) {
@@ -4009,7 +4149,12 @@ function applyCanvasSize({ settled = false } = {}) {
   }
   canvas.style.width = '100%';
   canvas.style.height = '100%';
-  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  
+  if (gl) {
+    gl.viewport(0, 0, canvas.width, canvas.height);
+  } else if (ctx) {
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  }
 }
 function resize() {
   if(!preferences.adaptiveCanvasResize) {
@@ -4109,6 +4254,29 @@ function draw(ts) {
   const targetFrameMs = easingCanvas ? 1000 / 14 : CANVAS_FRAME_MS;
   if(lastCanvasFrame && ts - lastCanvasFrame < targetFrameMs) return;
   lastCanvasFrame = ts;
+
+  if (gl && shaderProgram) {
+    // Smooth mouse interpolation
+    mouseX += (targetMouseX - mouseX) * 0.05;
+    mouseY += (targetMouseY - mouseY) * 0.05;
+
+    gl.useProgram(shaderProgram);
+    gl.uniform1f(uTimeLoc, (ts - t0) / 1000);
+    gl.uniform2f(uResLoc, canvas.width, canvas.height);
+    gl.uniform2f(uMouseLoc, mouseX, mouseY);
+
+    // Dynamic colors derived from theme colors in the 0.0 - 1.0 range
+    if (palRgb && palRgb.a) {
+      gl.uniform3f(uColorALoc, palRgb.a[0]/255.0, palRgb.a[1]/255.0, palRgb.a[2]/255.0);
+      gl.uniform3f(uColorBLoc, palRgb.b[0]/255.0, palRgb.b[1]/255.0, palRgb.b[2]/255.0);
+      gl.uniform3f(uColorCLoc, palRgb.c[0]/255.0, palRgb.c[1]/255.0, palRgb.c[2]/255.0);
+      gl.uniform3f(uColorDLoc, palRgb.d[0]/255.0, palRgb.d[1]/255.0, palRgb.d[2]/255.0);
+      gl.uniform3f(uColorELoc, palRgb.e[0]/255.0, palRgb.e[1]/255.0, palRgb.e[2]/255.0);
+    }
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    return;
+  }
 
   const t = ts - t0;
   const progress = remainingMs / (total*1000);
