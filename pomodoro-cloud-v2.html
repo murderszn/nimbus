@@ -2010,6 +2010,7 @@ const IS_DESKTOP = !!desktopBridge.isDesktop;
 const VS = 'attribute vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }';
 const FS = `
 precision highp float;
+
 uniform float u_time;
 uniform vec2  u_res;
 uniform vec2  u_mouse;
@@ -2020,38 +2021,82 @@ uniform vec3  u_color_c;
 uniform vec3  u_color_d;
 uniform vec3  u_color_e;
 
-float hash21(vec2 p){ p = fract(p * vec2(234.34, 435.345)); p += dot(p, p + 34.23); return fract(p.x * p.y); }
-float vnoise(vec2 p){ vec2 i = floor(p); vec2 f = fract(p); f = f*f*(3.0-2.0*f);
-  float a=hash21(i), b=hash21(i+vec2(1.0,0.0)), c=hash21(i+vec2(0.0,1.0)), d=hash21(i+vec2(1.0,1.0));
-  return mix(mix(a,b,f.x), mix(c,d,f.x), f.y); }
-float fbm(vec2 p){ float v=0.0; float a=0.5; mat2 r=mat2(0.80,0.60,-0.60,0.80);
-  for(int i=0;i<5;i++){ v+=a*vnoise(p); p=r*p*2.1+vec2(1.7,9.2); a*=0.5; } return v; }
+#define TAU 6.28318530718
 
-vec3 pal(float t){ t=clamp(t,0.0,1.0);
-  if(t<0.30) return mix(u_color_a, u_color_b, t/0.30);
-  if(t<0.62) return mix(u_color_b, u_color_c, (t-0.30)/0.32);
-             return mix(u_color_c, u_color_d, (t-0.62)/0.38); }
+float hash21(vec2 p){
+    p = fract(p * vec2(234.34, 435.345));
+    p += dot(p, p + 34.23);
+    return fract(p.x * p.y);
+}
+
+float vnoise(vec2 p){
+    vec2 i = floor(p), f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float a = hash21(i);
+    float b = hash21(i + vec2(1.0, 0.0));
+    float c = hash21(i + vec2(0.0, 1.0));
+    float d = hash21(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+float fbm(vec2 p){
+    float v = 0.0, a = 0.5;
+    mat2 r = mat2(0.80, 0.60, -0.60, 0.80);
+    for (int i = 0; i < 5; i++){
+        v += a * vnoise(p);
+        p  = r * p * 2.1 + vec2(1.7, 9.2);
+        a *= 0.5;
+    }
+    return v;
+}
+
+vec2 loopOff(float speed){
+    return vec2(cos(u_time * 0.4), sin(u_time * 0.4)) * (0.10 + 0.55 * speed);
+}
+
+vec3 grad4(float t){
+    t = clamp(t, 0.0, 1.0);
+    vec3 c = mix(u_color_a, u_color_b, smoothstep(0.00, 0.35, t));
+    c = mix(c, u_color_c, smoothstep(0.35, 0.70, t));
+    c = mix(c, u_color_d, smoothstep(0.70, 1.00, t));
+    return c;
+}
 
 void main(){
-  vec2 uv = gl_FragCoord.xy / u_res; uv.y = 1.0 - uv.y;
-  float ar = u_res.x / u_res.y;
-  
-  // Subtle interactive parallax displacement based on mouse coordinates
-  vec2 mouseWarp = (u_mouse - 0.5) * 0.12 * (1.0 - uv.y);
-  vec2 p = vec2(uv.x * ar, uv.y) + mouseWarp;
-  
-  float t  = u_time * 0.22;
-  vec2 q = vec2(fbm(p*1.5 + vec2(t*0.30, t*0.05)), fbm(p*1.5 + vec2(5.2,1.3) - vec2(t*0.18, 0.0)));
-  float f = fbm(p*1.4 + q*2.6 + vec2(t*0.22, 0.0));
-  float swell = uv.y*1.4 + sin(uv.x*ar*1.4 + t*1.1 + q.x*3.0)*0.30 + sin(uv.x*ar*3.1 - t*1.6 + q.y*2.0)*0.14 + f*1.5;
-  float band = 0.5 + 0.5*sin(swell*6.2831*0.85 - t*0.6);
-  vec3 col = pal(band*0.96);
-  float crest = pow(band,6.0)*0.55;
-  col += u_color_e * crest;
-  col *= 0.82 + 0.30*smoothstep(0.0,0.7,uv.y);
-  col += (hash21(gl_FragCoord.xy) - 0.5)*0.02;
-  vec2 vig = uv*2.0 - 1.0; col *= 1.0 - dot(vig,vig)*0.22;
-  gl_FragColor = vec4(col, 1.0);
+    vec2 uv = gl_FragCoord.xy / u_res;
+    uv.y = 1.0 - uv.y;
+    float ar = u_res.x / u_res.y;
+    float t = u_time * 0.15;
+    float speed = 0.5;
+    float seed = 2.71;
+
+    vec2 sOff = vec2(fract(seed * 0.193), fract(seed * 0.317)) * 47.0;
+    vec3 col = vec3(0.0);
+
+    vec3 night  = u_color_a * 0.40;
+    float light = 0.0;
+    vec3  tint  = vec3(0.0);
+    for (int i = 0; i < 3; i++){
+        float fi = float(i) + 1.0;
+        float xx = uv.x * ar * (1.0 + 0.35 * fi) + seed * fi * 1.7;
+        float wave = fbm(vec2(xx * 0.6, fi * 4.0) + loopOff(speed) * 1.2) - 0.5;
+        float cy   = 0.42 + 0.12 * fi + wave * 0.38;
+        float streak = fbm(vec2(xx * 5.0, uv.y * 2.5) + loopOff(speed));
+        float dist  = uv.y - cy;
+        float band  = exp(-dist * dist * 28.0);
+        float inten = max(band * (0.25 + 0.95 * streak), 0.0);
+        light += inten / fi;
+        tint  += grad4(clamp(0.15 + (1.0 - uv.y) * 0.95, 0.0, 1.0)) * inten / fi;
+    }
+    col  = night + tint * 2.3;
+    col += u_color_e * pow(clamp(light, 0.0, 1.0), 3.0) * 0.30;
+
+    col *= 0.82 + 0.30 * smoothstep(0.0, 0.7, uv.y);
+    col += (hash21(gl_FragCoord.xy + vec2(t * 43.7)) - 0.5) * 0.02;
+    vec2 vig = uv * 2.0 - 1.0;
+    col *= 1.0 - dot(vig, vig) * 0.22;
+
+    gl_FragColor = vec4(col, 1.0);
 }
 `;
 
@@ -2137,6 +2182,15 @@ const DEFAULT_PREFERENCES = {
   adaptiveCanvasResize: true,
 };
 const VERSION_HISTORY = [
+  {
+    version: '1.2.14',
+    date: '2026-06-16',
+    changes: [
+      'Upgraded WebGL shader to aurora wave background with multi-band light streaks.',
+      'New glassmorphism landing page with live aurora shader background.',
+      'Timer zen mode now renders a shader canvas matching the active theme.'
+    ]
+  },
   {
     version: '1.2.13',
     date: '2026-04-26',
