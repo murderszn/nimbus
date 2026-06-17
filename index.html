@@ -1699,36 +1699,40 @@ uniform vec2  u_res;
 uniform vec2  u_mouse;
 
 float hash21(vec2 p){ p = fract(p * vec2(234.34, 435.345)); p += dot(p, p + 34.23); return fract(p.x * p.y); }
-float vnoise(vec2 p){ vec2 i = floor(p); vec2 f = fract(p); f = f*f*(3.0-2.0*f);
+float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
   float a=hash21(i), b=hash21(i+vec2(1.0,0.0)), c=hash21(i+vec2(0.0,1.0)), d=hash21(i+vec2(1.0,1.0));
   return mix(mix(a,b,f.x), mix(c,d,f.x), f.y); }
 float fbm(vec2 p){ float v=0.0; float a=0.5; mat2 r=mat2(0.80,0.60,-0.60,0.80);
-  for(int i=0;i<5;i++){ v+=a*vnoise(p); p=r*p*2.1+vec2(1.7,9.2); a*=0.5; } return v; }
+  for(int i=0;i<6;i++){ v+=a*vnoise(p); p=r*p*2.0+vec2(1.7,9.2); a*=0.48; } return v; }
 
-vec3 pal(float t){ t=clamp(t,0.0,1.0);
-  if(t<0.30) return mix(vec3(0.000,0.000,0.000), vec3(0.008,0.031,0.122), t/0.30);
-  if(t<0.62) return mix(vec3(0.008,0.031,0.122), vec3(0.043,0.290,0.698), (t-0.30)/0.32);
-             return mix(vec3(0.043,0.290,0.698), vec3(0.000,0.824,1.000), (t-0.62)/0.38); }
+vec2 loopOff(){
+  return vec2(cos(u_time*0.12), sin(u_time*0.12)) * 0.38;
+}
+
+vec3 grad4(float t){ t=clamp(t,0.0,1.0);
+  vec3 c0=vec3(0.002,0.004,0.012), c1=vec3(0.012,0.04,0.12), c2=vec3(0.06,0.22,0.52), c3=vec3(0.15,0.65,0.95);
+  vec3 c=mix(c0,c1,smoothstep(0.0,0.35,t));
+  c=mix(c,c2,smoothstep(0.35,0.70,t));
+  c=mix(c,c3,smoothstep(0.70,1.0,t));
+  return c;
+}
 
 void main(){
   vec2 uv = gl_FragCoord.xy / u_res; uv.y = 1.0 - uv.y;
   float ar = u_res.x / u_res.y;
-  
-  // Subtle interactive parallax displacement based on mouse coordinates
-  vec2 mouseWarp = (u_mouse - 0.5) * 0.12 * (1.0 - uv.y);
-  vec2 p = vec2(uv.x * ar, uv.y) + mouseWarp;
-  
-  float t  = u_time * 0.22;
-  vec2 q = vec2(fbm(p*1.5 + vec2(t*0.30, t*0.05)), fbm(p*1.5 + vec2(5.2,1.3) - vec2(t*0.18, 0.0)));
-  float f = fbm(p*1.4 + q*2.6 + vec2(t*0.22, 0.0));
-  float swell = uv.y*1.4 + sin(uv.x*ar*1.4 + t*1.1 + q.x*3.0)*0.30 + sin(uv.x*ar*3.1 - t*1.6 + q.y*2.0)*0.14 + f*1.5;
-  float band = 0.5 + 0.5*sin(swell*6.2831*0.85 - t*0.6);
-  vec3 col = pal(band*0.96);
-  float crest = pow(band,6.0)*0.55;
-  col += vec3(0.500,0.900,1.000)*crest;
-  col *= 0.82 + 0.30*smoothstep(0.0,0.7,uv.y);
-  col += (hash21(gl_FragCoord.xy) - 0.5)*0.02;
-  vec2 vig = uv*2.0 - 1.0; col *= 1.0 - dot(vig,vig)*0.22;
+
+  vec2 p = (uv - 0.5) * vec2(ar, 1.0) * 1.8;
+  float w = 2.8;
+  vec2 q = vec2(fbm(p + loopOff()), fbm(p + vec2(5.2,1.3) - loopOff()));
+  vec2 r = vec2(fbm(p + q*w + vec2(1.7,9.2) + loopOff()*0.6),
+                fbm(p + q*w + vec2(8.3,2.8) - loopOff()*0.3));
+  float f = fbm(p + r*2.8);
+  vec3 col = grad4(clamp(f*1.3 + 0.08*r.x - 0.05, 0.0, 1.0));
+  col = mix(col, vec3(0.06,0.22,0.52), q.y*q.x*0.2);
+
+  col *= 0.85 + 0.25*smoothstep(0.0,0.8,uv.y);
+  col += (hash21(gl_FragCoord.xy + vec2(u_time*0.01)) - 0.5)*0.015;
+  vec2 vig = uv*2.0 - 1.0; col *= 1.0 - dot(vig,vig)*0.28;
   gl_FragColor = vec4(col, 1.0);
 }
 `;
@@ -1809,41 +1813,47 @@ uniform vec2 u_res;
 uniform float u_theme;
 
 float hash21(vec2 p){ p = fract(p * vec2(234.34, 435.345)); p += dot(p, p + 34.23); return fract(p.x * p.y); }
-float vnoise(vec2 p){ vec2 i = floor(p); vec2 f = fract(p); f = f*f*(3.0-2.0*f);
+float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
   float a=hash21(i), b=hash21(i+vec2(1.0,0.0)), c=hash21(i+vec2(0.0,1.0)), d=hash21(i+vec2(1.0,1.0));
   return mix(mix(a,b,f.x), mix(c,d,f.x), f.y); }
 float fbm(vec2 p){ float v=0.0; float a=0.5; mat2 r=mat2(0.80,0.60,-0.60,0.80);
-  for(int i=0;i<5;i++){ v+=a*vnoise(p); p=r*p*2.1+vec2(1.7,9.2); a*=0.5; } return v; }
+  for(int i=0;i<6;i++){ v+=a*vnoise(p); p=r*p*2.0+vec2(1.7,9.2); a*=0.48; } return v; }
 
-vec3 getThemeColor(float t){
-  if(u_theme < 0.5) return mix(vec3(0.0, 0.0, 0.0), vec3(0.024, 0.714, 0.831), t);
-  if(u_theme < 1.5) return mix(vec3(0.0, 0.0, 0.0), vec3(0.063, 0.725, 0.506), t);
-  if(u_theme < 2.5) return mix(vec3(0.0, 0.0, 0.0), vec3(0.961, 0.620, 0.043), t);
-  return mix(vec3(0.0, 0.0, 0.0), vec3(0.545, 0.361, 0.965), t);
+vec2 loopOff(){
+  return vec2(cos(u_time*0.12), sin(u_time*0.12)) * 0.38;
+}
+
+vec3 getThemeGrad(float t){
+  t=clamp(t,0.0,1.0);
+  vec3 c0,c1,c2,c3;
+  if(u_theme < 0.5){ c0=vec3(0.002,0.02,0.06); c1=vec3(0.01,0.08,0.18); c2=vec3(0.05,0.28,0.55); c3=vec3(0.12,0.62,0.88); }
+  else if(u_theme < 1.5){ c0=vec3(0.002,0.04,0.03); c1=vec3(0.01,0.12,0.08); c2=vec3(0.05,0.35,0.25); c3=vec3(0.30,0.80,0.60); }
+  else if(u_theme < 2.5){ c0=vec3(0.04,0.02,0.005); c1=vec3(0.12,0.06,0.01); c2=vec3(0.45,0.25,0.04); c3=vec3(0.88,0.72,0.30); }
+  else { c0=vec3(0.01,0.005,0.04); c1=vec3(0.04,0.02,0.12); c2=vec3(0.25,0.10,0.50); c3=vec3(0.65,0.35,0.85); }
+  vec3 c=mix(c0,c1,smoothstep(0.0,0.35,t));
+  c=mix(c,c2,smoothstep(0.35,0.70,t));
+  c=mix(c,c3,smoothstep(0.70,1.0,t));
+  return c;
 }
 
 void main(){
   vec2 uv = gl_FragCoord.xy / u_res;
   uv.y = 1.0 - uv.y;
   float ar = u_res.x / u_res.y;
-  float t = u_time * 0.15;
-  
-  vec2 p = vec2(uv.x * ar, uv.y) * 2.0;
-  vec2 q = vec2(fbm(p + vec2(t*0.3, t*0.1)), fbm(p + vec2(5.2, 1.3) - vec2(t*0.2, 0.0)));
-  float f = fbm(p + q * 2.0 + vec2(t*0.15, 0.0));
-  
-  float swell = uv.y * 1.8 + sin(uv.x*ar*1.2 + t*0.8 + q.x*2.5)*0.4 + f*1.2;
-  float band = 0.5 + 0.5*sin(swell*6.2831*0.7 - t*0.4);
-  
-  vec3 col = getThemeColor(band * 0.8);
-  col += getThemeColor(1.0) * pow(band, 8.0) * 0.4;
-  col *= 0.7 + 0.3*smoothstep(0.0, 0.8, uv.y);
-  
-  float vignette = 1.0 - dot((uv*2.0-1.0), (uv*2.0-1.0)) * 0.3;
-  col *= vignette;
-  
-  col += (hash21(gl_FragCoord.xy) - 0.5) * 0.015;
-  
+
+  vec2 p = (uv - 0.5) * vec2(ar, 1.0) * 1.8;
+  float w = 2.8;
+  vec2 q = vec2(fbm(p + loopOff()), fbm(p + vec2(5.2,1.3) - loopOff()));
+  vec2 r = vec2(fbm(p + q*w + vec2(1.7,9.2) + loopOff()*0.6),
+                fbm(p + q*w + vec2(8.3,2.8) - loopOff()*0.3));
+  float f = fbm(p + r*2.8);
+  vec3 col = getThemeGrad(clamp(f*1.3 + 0.08*r.x - 0.05, 0.0, 1.0));
+
+  col *= 0.85 + 0.25*smoothstep(0.0, 0.8, uv.y);
+  col += (hash21(gl_FragCoord.xy) - 0.5) * 0.012;
+  vec2 vig = uv*2.0 - 1.0;
+  col *= 1.0 - dot(vig,vig)*0.28;
+
   gl_FragColor = vec4(col, 1.0);
 }`;
 

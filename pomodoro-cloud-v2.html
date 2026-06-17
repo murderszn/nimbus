@@ -2022,8 +2022,6 @@ uniform vec3  u_color_c;
 uniform vec3  u_color_d;
 uniform vec3  u_color_e;
 
-#define TAU 6.28318530718
-
 float hash21(vec2 p){
     p = fract(p * vec2(234.34, 435.345));
     p += dot(p, p + 34.23);
@@ -2043,16 +2041,16 @@ float vnoise(vec2 p){
 float fbm(vec2 p){
     float v = 0.0, a = 0.5;
     mat2 r = mat2(0.80, 0.60, -0.60, 0.80);
-    for (int i = 0; i < 5; i++){
+    for (int i = 0; i < 6; i++){
         v += a * vnoise(p);
-        p  = r * p * 2.1 + vec2(1.7, 9.2);
-        a *= 0.5;
+        p  = r * p * 2.0 + vec2(1.7, 9.2);
+        a *= 0.48;
     }
     return v;
 }
 
-vec2 loopOff(float speed){
-    return vec2(cos(u_time * 0.4), sin(u_time * 0.4)) * (0.10 + 0.55 * speed);
+vec2 loopOff(){
+    return vec2(cos(u_time * 0.12), sin(u_time * 0.12)) * 0.38;
 }
 
 vec3 grad4(float t){
@@ -2067,35 +2065,21 @@ void main(){
     vec2 uv = gl_FragCoord.xy / u_res;
     uv.y = 1.0 - uv.y;
     float ar = u_res.x / u_res.y;
-    float t = u_time * 0.15;
-    float speed = 0.5;
-    float seed = 2.71;
 
-    vec2 sOff = vec2(fract(seed * 0.193), fract(seed * 0.317)) * 47.0;
-    vec3 col = vec3(0.0);
+    vec2 p = (uv - 0.5) * vec2(ar, 1.0) * 1.8;
+    float w = 2.8;
+    vec2 q = vec2(fbm(p + loopOff()),
+                  fbm(p + vec2(5.2, 1.3) - loopOff()));
+    vec2 r = vec2(fbm(p + q * w + vec2(1.7, 9.2) + loopOff() * 0.6),
+                  fbm(p + q * w + vec2(8.3, 2.8) - loopOff() * 0.3));
+    float f = fbm(p + r * 2.8);
+    vec3 col = grad4(clamp(f * 1.3 + 0.08 * r.x - 0.05, 0.0, 1.0));
+    col = mix(col, u_color_c, q.y * q.x * 0.2);
 
-    vec3 night  = u_color_a * 0.40;
-    float light = 0.0;
-    vec3  tint  = vec3(0.0);
-    for (int i = 0; i < 3; i++){
-        float fi = float(i) + 1.0;
-        float xx = uv.x * ar * (1.0 + 0.35 * fi) + seed * fi * 1.7;
-        float wave = fbm(vec2(xx * 0.6, fi * 4.0) + loopOff(speed) * 1.2) - 0.5;
-        float cy   = 0.42 + 0.12 * fi + wave * 0.38;
-        float streak = fbm(vec2(xx * 5.0, uv.y * 2.5) + loopOff(speed));
-        float dist  = uv.y - cy;
-        float band  = exp(-dist * dist * 28.0);
-        float inten = max(band * (0.25 + 0.95 * streak), 0.0);
-        light += inten / fi;
-        tint  += grad4(clamp(0.15 + (1.0 - uv.y) * 0.95, 0.0, 1.0)) * inten / fi;
-    }
-    col  = night + tint * 2.3;
-    col += u_color_e * pow(clamp(light, 0.0, 1.0), 3.0) * 0.30;
-
-    col *= 0.82 + 0.30 * smoothstep(0.0, 0.7, uv.y);
-    col += (hash21(gl_FragCoord.xy + vec2(t * 43.7)) - 0.5) * 0.02;
+    col *= 0.85 + 0.25 * smoothstep(0.0, 0.8, uv.y);
+    col += (hash21(gl_FragCoord.xy + vec2(u_time * 0.01)) - 0.5) * 0.015;
     vec2 vig = uv * 2.0 - 1.0;
-    col *= 1.0 - dot(vig, vig) * 0.22;
+    col *= 1.0 - dot(vig, vig) * 0.28;
 
     gl_FragColor = vec4(col, 1.0);
 }
