@@ -1325,7 +1325,7 @@
             <div class="terminal-body">
               <div class="terminal-line">
                 <span class="prompt-symbol">$</span>
-                <span class="command-text" id="installCommand">curl -fsSL https://raw.githubusercontent.com/murderszn/nimbus/main/install.sh | bash</span>
+                <span class="command-text" id="installCommand">curl -fsSL https://raw.githubusercontent.com/murderszn/nimbus/main/install.sh -o install.sh && bash install.sh</span>
                 <button class="copy-btn" id="copyBtn">
                   <span>Copy</span>
                 </button>
@@ -1940,7 +1940,7 @@ void main(){
     const copyBtn = document.getElementById('copyBtn');
 
     const COMMANDS = {
-      mac: 'curl -fsSL https://raw.githubusercontent.com/murderszn/nimbus/main/install.sh | bash',
+      mac: 'curl -fsSL https://raw.githubusercontent.com/murderszn/nimbus/main/install.sh -o install.sh && bash install.sh',
       win: 'iwr https://raw.githubusercontent.com/murderszn/nimbus/main/install.ps1 | iex',
       manual: 'curl -L -o Nimbus.dmg https://github.com/murderszn/nimbus/releases/latest/download/Nimbus-1.2.15-mac-arm64.dmg'
     };
